@@ -190,352 +190,89 @@
 
  )
 
+# this looks complicated, but it's just wrapping pieces of the original
+# grammar with appropriate capture constructs that also capture start and
+# end positions
 (def cg-capture-ast-with-loc
-  (->
-    # cg is a struct, need something mutable
-    (table ;(kvs cg))
-    # override things that need to be captured
-    (put :list
-      ~(cmt
-         (sequence (position)
-                   (sequence "("
-                             (capture (any :input))
-                             (choice ")" (error "")))
-                   (position))
-         ,|[:list {:start (first $&)
-                   :end (last $&)}
-                  ;(slice $& 1 -3)]))
-    (put :vector
-      ~(cmt
-         (sequence (position)
-                   (sequence "["
-                             (capture (any :input))
-                             (choice "]" (error "")))
-                   (position))
-         ,|[:vector {:start (first $&)
-                     :end (last $&)}
-                    ;(slice $& 1 -3)]))
-    (put :map
-      ~(cmt
-         (sequence (position)
-                   (sequence "{"
-                             (capture (any :input))
-                             (choice "}" (error "")))
-                   (position))
-         ,|[:map {:start (first $&)
-                  :end (last $&)}
-                 ;(slice $& 1 -3)]))
-    (put :keyword
-      ~(cmt
-         (sequence
-           (position)
-           (capture (sequence ":"
-                              (choice "/"
-                                      (sequence :keyword_head
-                                                (any :keyword_body)))))
-           (position))
-         ,|[:keyword {:start (first $&)
-                      :end (last $&)}
-                     (in $& 1)]))
-    (put :macro_keyword
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "::"
-                                         :keyword_head
-                                         (any :keyword_body)))
-                      (position))
-            ,|[:macro_keyword {:start (first $&)
-                               :end (last $&)}
-                              (in $& 1)]))
-    (put :string
-         ~(cmt
-            (sequence
-              (position)
-              (capture (sequence "\""
-                                 (any (if-not (set "\"\\")
-                                              1))
-                                 (any (sequence "\\"
-                                                1
-                                                (any (if-not (set "\"\\")
-                                                             1))))
-                                 "\""))
-                      (position))
-            ,|[:string {:start (first $&)
-                        :end (last $&)}
-                       (in $& 1)]))
-    (put :number
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence (opt (set "+-"))
-                                         (some :digit)
-                                         (choice :ratio_suffix
-                                                 :double_suffix
-                                                 :long_suffix)))
-                      (position))
-            ,|[:number {:start (first $&)
-                        :end (last $&)}
-                       (in $& 1)]))
-    (put :character
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "\\"
-                                         (choice :named_char
-                                                 :unicode
-                                                 :unicode_char)))
-                      (position))
-            ,|[:character {:start (first $&)
-                           :end (last $&)}
-                          (in $& 1)]))
-    (put :symbol
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence :name_head
-                                         (any :name_body)))
-                      (position))
-            ,|[:symbol {:start (first $&)
-                        :end (last $&)}
-                       (in $& 1)]))
-    (put :metadata
-         ~(cmt
-            (sequence
-              (position)
-              (capture
-                (sequence (some (sequence (choice :metadata_entry
-                                                  :deprecated_metadata_entry)
-                                          (opt :whitespace)))
-                          (choice :collection
-                                  :namespaced_map
-                                  :set
-                                  :tag
-                                  :fn
-                                  :unquote_splicing
-                                  :unquote
-                                  :symbol)))
-              (position))
-            ,|[:metadata {:start (first $&)
-                          :end (last $&)}
-                         ;(slice $& 1 -3)]))
-    (put :metadata_entry
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "^"
-                                         (choice :map
-                                                 :string
-                                                 :macro_keyword
-                                                 :keyword
-                                                 :symbol)))
-                      (position))
-            ,|[:metadata_entry {:start (first $&)
-                                :end (last $&)}
-                               ;(slice $& 1 -3)]))
-    (put :deprecated_metadata_entry
-         ~(cmt
-            (sequence
-              (position)
-              (capture (sequence "#^"
-                                 (choice :map
-                                         :string
-                                         :macro_keyword
-                                         :keyword
-                                         :symbol)))
-              (position))
-            ,|[:deprecated_metadata_entry {:start (first $&)
-                                           :end (last $&)}
-                                          ;(slice $& 1 -3)]))
-    (put :backtick
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "`"
-                                         (opt :whitespace)
-                                         :form))
-                      (position))
-            ,|[:backtick {:start (first $&)
-                          :end (last $&)}
-                         ;(slice $& 1 -3)]))
-    (put :quote
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "'"
-                                         (opt :whitespace)
-                                         :form))
-                      (position))
-            ,|[:quote {:start (first $&)
-                       :end (last $&)}
-                      ;(slice $& 1 -3)]))
-    (put :unquote
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "~"
-                                         (opt :whitespace)
-                                         :form))
-                      (position))
-            ,|[:unquote {:start (first $&)
-                         :end (last $&)}
-                        ;(slice $& 1 -3)]))
-    (put :unquote_splicing
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "~@"
-                                         (opt :whitespace)
-                                         :form))
-                      (position))
-            ,|[:unquote_splicing {:start (first $&)
-                                  :end (last $&)}
-                                 ;(slice $& 1 -3)]))
-    (put :deref
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "@"
-                                         (opt :whitespace)
-                                         :form))
-                      (position))
-            ,|[:deref {:start (first $&)
-                       :end (last $&)}
-                      ;(slice $& 1 -3)]))
-    (put :fn
-         ~(cmt
-            (sequence (position)
-                      (sequence "#"
-                                (capture :list))
-                      (position))
-            ,|[:fn {:start (first $&)
-                    :end (last $&)}
-                   ;(slice $& 1 -3)]))
-    (put :regex
-         ~(cmt
-            (sequence (position)
-                      (sequence "#"
-                                (capture :string))
-                      (position))
-            ,|[:regex {:start (first $&)
-                       :end (last $&)}
-                      (last (in $& 1))]))
-    (put :set
-         ~(cmt
-            (sequence (position)
-                      (sequence "#{"
-                                (capture (any :input))
-                                (choice "}" (error "")))
-                      (position))
-            ,|[:set {:start (first $&)
-                     :end (last $&)}
-                    ;(slice $& 1 -3)]))
-    (put :namespaced_map
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "#"
-                                         (choice :macro_keyword
-                                                 :auto_resolve
-                                                 :keyword)
-                                         (opt :whitespace)
-                                         :map))
-                      (position))
-            ,|[:namespaced_map {:start (first $&)
-                                :end (last $&)}
-                               ;(slice $& 1 -3)]))
-    (put :auto_resolve
-         ~(cmt
-            (sequence (position)
-                      (capture "::")
-                      (position))
-            ,(fn [& caps]
-               [:auto_resolve {:start (first caps)
-                               :end (last caps)}])))
-    (put :var_quote
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "#'"
-                                         (opt :whitespace)
-                                         :form))
-                      (position))
-            ,|[:var_quote {:start (first $&)
-                           :end (last $&)}
-                          ;(slice $& 1 -3)]))
-    (put :discard
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "#_"
-                                         (opt (sequence (opt :whitespace)
-                                                        :discard))
-                                         (opt :whitespace)
-                                         :form))
-                      (position))
-            ,|[:discard  {:start (first $&)
-                          :end (last $&)}
-                         ;(slice $& 1 -3)]))
-    (put :tag
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "#"
-                                         :symbol
-                                         (opt :whitespace)
-                                         (choice :tag
-                                                 :collection
-                                                 :literal)))
-                      (position))
-            ,|[:tag {:start (first $&)
-                     :end (last $&)}
-                    ;(slice $& 1 -3)]))
-    (put :conditional
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "#?"
-                                         (opt :whitespace)
-                                         :list))
-                      (position))
-            ,|[:conditional {:start (first $&)
+  # cg is a struct, need something mutable
+  (let [ca (table ;(kvs cg))]
+    (each kwd [:character :comment :keyword :macro_keyword :number
+               :string :symbol :whitespace]
+          (put ca kwd
+               ~(cmt (sequence (position)
+                               (capture ,(in ca kwd))
+                               (position))
+                     ,|[kwd {:start (first $&)
                              :end (last $&)}
-                            ;(slice $& 1 -3)]))
-    (put :conditional_splicing
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "#?@"
-                                         (opt :whitespace)
-                                         :list))
-                      (position))
-            ,|[:conditional_splicing {:start (first $&)
-                                      :end (last $&)}
-                                     ;(slice $& 1 -3)]))
-    (put :symbolic
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "##"
-                                         :symbol))
-                      (position))
-            ,|[:symbolic {:start (first $&)
-                          :end (last $&)}
-                         (last ;(slice $& 1 -3))]))
-    (put :eval
-         ~(cmt
-            (sequence (position)
-                      (capture (sequence "#="
-                                         (opt :whitespace)
-                                         (choice :list
-                                                 :symbol)))
-                      (position))
-            ,|[:eval {:start (first $&)
-                      :end (last $&)}
-                     ;(slice $& 1 -3)]))
-    (put :whitespace
-         ~(cmt
-            (sequence (position)
-                      (capture (some (set "\f\n\r\t, ")))
-                      (position))
-            ,|[:whitespace {:start (first $&)
+                            (in $& 1)])))
+    (each kwd [:backtick :conditional :conditional_splicing
+               :deprecated_metadata_entry :deref :discard
+               :eval :metadata :metadata_entry :namespaced_map
+               :quote :tag :unquote :unquote_splicing :var_quote]
+          (put ca kwd
+               ~(cmt (sequence (position)
+                               (capture ,(in ca kwd))
+                               (position))
+                     ,|[kwd {:start (first $&)
+                             :end (last $&)}
+                            ;(slice $& 1 -3)])))
+    (each kwd [:list :map :set :vector]
+          (let [original (in ca kwd)
+                wrap-target (get-in ca [kwd 2])
+                replacement (tuple # array needs to be converted
+                              ;(put (array ;original)
+                                    2 ~(capture ,wrap-target)))]
+            (put ca kwd
+                 ~(cmt (sequence (position)
+                                 ,replacement
+                                 (position))
+                       ,|[kwd {:start (first $&)
+                               :end (last $&)}
+                              ;(slice $& 1 -3)]))))
+    #
+    (let [original (in ca :regex)
+          wrap-target (get-in ca [:regex 2])
+          replacement (tuple # array needs to be converted
+                        ;(put (array ;original)
+                              2 ~(capture ,wrap-target)))]
+      (put ca :regex
+           ~(cmt (sequence (position)
+                           ,replacement
+                           (position))
+                 ,|[:regex {:start (first $&)
                             :end (last $&)}
-                           (in $& 1)]))
-    (put :comment
+                           (last (in $& 1))])))
+    #
+    (let [original (in ca :fn)
+          wrap-target (get-in ca [:fn 2])
+          replacement (tuple # array needs to be converted
+                        ;(put (array ;original)
+                              2 ~(capture ,wrap-target)))]
+      (put ca :fn
+           ~(cmt (sequence (position)
+                           ,replacement
+                           (position))
+                 ,|[:fn {:start (first $&)
+                         :end (last $&)}
+                    ;(slice $& 1 -3)])))
+    #
+    (put ca :symbolic
          ~(cmt (sequence (position)
-                         (capture (sequence (choice ";"
-                                                    "#!")
-                                            (any (if-not (set "\r\n")
-                                                   1))))
+                         (capture ,(in ca :symbolic))
                          (position))
-               ,|[:comment {:start (first $&)
-                            :end (last $&)}
-                           (in $& 1)]))
+               ,|[:symbolic {:start (first $&)
+                             :end (last $&)}
+                            (last ;(slice $& 1 -3))]))
+    #
+    (put ca :auto_resolve
+         ~(cmt (sequence (position)
+                         (capture ,(in ca :auto_resolve))
+                         (position))
+               ,(fn [& caps]
+                  [:auto_resolve {:start (first caps)
+                                  :end (last caps)}])))
     # tried using a table with a peg but had a problem, so use a struct
-    table/to-struct))
+    (table/to-struct ca)))
 
 (comment
 
