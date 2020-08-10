@@ -510,7 +510,7 @@
                ~(cmt (sequence (position)
                                (capture ,(in ca kwd)))
                      ,|[kwd (first $&)
-                            ;(slice $& 1 -3)])))
+                            ;(slice $& 1 -2)])))
     (each kwd [:list :map :set :vector]
           (let [original (in ca kwd)
                 wrap-target (get-in ca [kwd 2])
@@ -521,7 +521,7 @@
                  ~(cmt (sequence (position)
                                  ,replacement)
                        ,|[kwd (first $&)
-                              ;(slice $& 1 -3)]))))
+                              ;(slice $& 1 -2)]))))
     #
     (let [original (in ca :regex)
           wrap-target (get-in ca [:regex 2])
@@ -543,13 +543,13 @@
            ~(cmt (sequence (position)
                            ,replacement)
                  ,|[:fn (first $&)
-                        ;(slice $& 1 -3)])))
+                        ;(slice $& 1 -2)])))
     #
     (put ca :symbolic
          ~(cmt (sequence (position)
                          (capture ,(in ca :symbolic)))
                ,|[:symbolic (first $&)
-                            (last ;(slice $& 1 -3))]))
+                            (last ;(slice $& 1 -2))]))
     #
     (put ca :auto_resolve
          ~(cmt (sequence (position)
