@@ -6,9 +6,132 @@
                    :discard
                    :form)
     #
+    :whitespace (some (set "\f\n\r\t, "))
+    #
+    :comment (sequence (choice ";"
+                               "#!")
+                       (any (if-not (set "\r\n")
+                                    1)))
+    #
     :form (choice :reader_macro
                   :collection
                   :literal)
+    #
+    :discard (sequence "#_"
+                       (opt (sequence (opt :whitespace)
+                                      :discard))
+                       (opt :whitespace)
+                       :form)
+    #
+    :reader_macro (choice :dispatch
+                          :backtick
+                          :quote
+                          :unquote_splicing
+                          :unquote
+                          :deref
+                          :metadata)
+    #
+    :dispatch (choice :set
+                      :fn
+                      :regex
+                      :conditional
+                      :conditional_splicing
+                      :namespaced_map
+                      :var_quote
+                      :eval
+                      :tag
+                      :symbolic)
+    #
+    :set (sequence "#{"
+                   (any :input)
+                   (choice "}" (error "")))
+    #
+    :fn (sequence "#" :list)
+    #
+    :regex (sequence "#" :string)
+    #
+    :namespaced_map (sequence "#"
+                              (choice :macro_keyword
+                                      :auto_resolve
+                                      :keyword)
+                              (opt :whitespace)
+                              :map)
+    #
+    :conditional (sequence "#?"
+                           (opt :whitespace)
+                           :list)
+    #
+    :conditional_splicing (sequence "#?@"
+                                    (opt :whitespace)
+                                    :list)
+    #
+    :auto_resolve "::"
+    #
+    :var_quote (sequence "#'"
+                         (opt :whitespace)
+                         :form)
+    #
+    :eval (sequence "#="
+                    (opt :whitespace)
+                    (choice :list
+                            :symbol))
+    #
+    :tag (sequence "#"
+                   :symbol
+                   (opt :whitespace)
+                   (choice :tag
+                           :collection
+                           :literal))
+    #
+    :symbolic (sequence "##"
+                        :symbol)
+    #
+    :backtick (sequence "`"
+                        (opt :whitespace)
+                        :form)
+    #
+    :quote (sequence "'"
+                     (opt :whitespace)
+                     :form)
+    #
+    :unquote (sequence "~"
+                       (opt :whitespace)
+                       :form)
+    #
+    :unquote_splicing (sequence "~@"
+                                (opt :whitespace)
+                                :form)
+    #
+    :deref (sequence "@"
+                    (opt :whitespace)
+                    :form)
+    #
+    :metadata
+    (sequence (some (sequence (choice :metadata_entry
+                                      :deprecated_metadata_entry)
+                              (opt :whitespace)))
+              (choice :collection
+                      :namespaced_map
+                      :set
+                      :tag
+                      :fn
+                      :unquote_splicing
+                      :unquote
+                      :symbol))
+    #
+    :metadata_entry (sequence "^"
+                              (choice :map
+                                      :string
+                                      :macro_keyword
+                                      :keyword
+                                      :symbol))
+    #
+    :deprecated_metadata_entry (sequence "#^"
+                                         (choice :map
+                                                 :string
+                                                 :macro_keyword
+                                                 :keyword
+                                                 :symbol))
     #
     :collection (choice :list
                         :vector
@@ -32,34 +155,6 @@
                      :string
                      :character
                      :symbol)
-    #
-    :keyword (sequence ":"
-                       (choice "/"
-                               (sequence :keyword_head
-                                         (any :keyword_body))))
-    #
-    :keyword_head (choice :allowed_name_character
-                          (set "#'"))
-    #
-    :allowed_name_character
-    (if-not (set "\r\n\t\f ()[]{}\"@~^;`\\,:#'/")
-            1)
-    #
-    :keyword_body (choice (set ":/")
-                          :keyword_head)
-    #
-    :macro_keyword (sequence "::"
-                             :keyword_head
-                             (any :keyword_body))
-    #
-    :string (sequence "\""
-                      (any (if-not (set "\"\\")
-                                   1))
-                      (any (sequence "\\"
-                                     1
-                                     (any (if-not (set "\"\\")
-                                                  1))))
-                      "\"")
     #
     :number (sequence (opt (set "+-"))
                       (some :digit)
@@ -87,6 +182,34 @@
     #
     :ratio_suffix (sequence "/"
                             (some :digit))
+    #
+    :macro_keyword (sequence "::"
+                             :keyword_head
+                             (any :keyword_body))
+    #
+    :keyword (sequence ":"
+                       (choice "/"
+                               (sequence :keyword_head
+                                         (any :keyword_body))))
+    #
+    :keyword_head (choice :allowed_name_character
+                          (set "#'"))
+    #
+    :allowed_name_character
+    (if-not (set "\r\n\t\f ()[]{}\"@~^;`\\,:#'/")
+            1)
+    #
+    :keyword_body (choice (set ":/")
+                          :keyword_head)
+    #
+    :string (sequence "\""
+                      (any (if-not (set "\"\\")
+                                   1))
+                      (any (sequence "\\"
+                                     1
+                                     (any (if-not (set "\"\\")
+                                                  1))))
+                      "\"")
     #
     :character (sequence "\\"
                          (choice :named_char
@@ -116,129 +239,6 @@
     #
     :name_body (choice :name_head
                        (set ":#'"))
-    #
-    :reader_macro (choice :dispatch
-                          :backtick
-                          :quote
-                          :unquote_splicing
-                          :unquote
-                          :deref
-                          :metadata)
-    #
-    :metadata
-    (sequence (some (sequence (choice :metadata_entry
-                                      :deprecated_metadata_entry)
-                              (opt :whitespace)))
-              (choice :collection
-                      :namespaced_map
-                      :set
-                      :tag
-                      :fn
-                      :unquote_splicing
-                      :unquote
-                      :symbol))
-    #
-    :metadata_entry (sequence "^"
-                              (choice :map
-                                      :string
-                                      :macro_keyword
-                                      :keyword
-                                      :symbol))
-    #
-    :deprecated_metadata_entry (sequence "#^"
-                                         (choice :map
-                                                 :string
-                                                 :macro_keyword
-                                                 :keyword
-                                                 :symbol))
-    #
-    :backtick (sequence "`"
-                        (opt :whitespace)
-                        :form)
-    #
-    :quote (sequence "'"
-                     (opt :whitespace)
-                     :form)
-    #
-    :unquote (sequence "~"
-                       (opt :whitespace)
-                       :form)
-    #
-    :unquote_splicing (sequence "~@"
-                                (opt :whitespace)
-                                :form)
-    #
-    :deref (sequence "@"
-                    (opt :whitespace)
-                    :form)
-    #
-    :dispatch (choice :set
-                      :fn
-                      :regex
-                      :conditional
-                      :conditional_splicing
-                      :namespaced_map
-                      :var_quote
-                      :eval
-                      :tag
-                      :symbolic)
-    #
-    :fn (sequence "#" :list)
-    #
-    :regex (sequence "#" :string)
-    #
-    :set (sequence "#{"
-                   (any :input)
-                   (choice "}" (error "")))
-    #
-    :namespaced_map (sequence "#"
-                              (choice :macro_keyword
-                                      :auto_resolve
-                                      :keyword)
-                              (opt :whitespace)
-                              :map)
-    #
-    :auto_resolve "::"
-    #
-    :var_quote (sequence "#'"
-                         (opt :whitespace)
-                         :form)
-    #
-    :discard (sequence "#_"
-                       (opt (sequence (opt :whitespace)
-                                      :discard))
-                       (opt :whitespace)
-                       :form)
-    #
-    :tag (sequence "#"
-                   :symbol
-                   (opt :whitespace)
-                   (choice :tag
-                           :collection
-                           :literal))
-    #
-    :conditional (sequence "#?"
-                           (opt :whitespace)
-                           :list)
-    #
-    :conditional_splicing (sequence "#?@"
-                                    (opt :whitespace)
-                                    :list)
-    #
-    :symbolic (sequence "##"
-                        :symbol)
-    #
-    :eval (sequence "#="
-                    (opt :whitespace)
-                    (choice :list
-                            :symbol))
-    #
-    :whitespace (some (set "\f\n\r\t, "))
-    #
-    :comment (sequence (choice ";"
-                               "#!")
-                       (any (if-not (set "\r\n")
-                                    1)))
     })
 
 (comment

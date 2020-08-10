@@ -29,10 +29,9 @@
   (let [ca (table ;(kvs cg))]
     (-> ca
         # override things that need to be captured
-        (put :whitespace
-             ~(cmt (capture ,(in ca :whitespace))
-                   ,|[:whitespace $]))
-        #
+        (put :character
+             ~(cmt (capture ,(in ca :character))
+                   ,|[:character $]))
         (put :comment
              ~(cmt (capture ,(in ca :comment))
                    ,|[:comment $]))
@@ -42,103 +41,105 @@
         (put :macro_keyword
              ~(cmt (capture ,(in ca :macro_keyword))
                    ,|[:macro_keyword $]))
-        (put :string
-             ~(cmt (capture ,(in ca :string))
-                   ,|[:string $]))
         (put :number
              ~(cmt (capture ,(in ca :number))
                    ,|[:number $]))
-        (put :character
-             ~(cmt (capture ,(in ca :character))
-                   ,|[:character $]))
+        (put :string
+             ~(cmt (capture ,(in ca :string))
+                   ,|[:string $]))
         (put :symbol
              ~(cmt (capture ,(in ca :symbol))
                    ,|[:symbol $]))
+        (put :whitespace
+             ~(cmt (capture ,(in ca :whitespace))
+                   ,|[:whitespace $]))
         #
-        (put :metadata
-             ~(cmt (capture ,(in ca :metadata))
-                   ,|[:metadata ;(slice $& 0 -2)]))
-        (put :metadata_entry
-             ~(cmt (capture ,(in ca :metadata_entry))
-                   ,|[:metadata_entry ;(slice $& 0 -2)]))
-        (put :deprecated_metadata_entry
-             ~(cmt (capture ,(in ca :deprecated_metadata_entry))
-                   ,|[:deprecated_metadata_entry ;(slice $& 0 -2)]))
         (put :backtick
              ~(cmt (capture ,(in ca :backtick))
                    ,|[:backtick ;(slice $& 0 -2)]))
-        (put :quote
-             ~(cmt (capture ,(in ca :quote))
-                   ,|[:quote ;(slice $& 0 -2)]))
-        (put :unquote
-             ~(cmt (capture ,(in ca :unquote))
-                   ,|[:unquote ;(slice $& 0 -2)]))
-        (put :unquote_splicing
-             ~(cmt (capture ,(in ca :unquote_splicing))
-                   ,|[:unquote_splicing ;(slice $& 0 -2)]))
-        (put :deref
-             ~(cmt (capture ,(in ca :deref))
-                   ,|[:deref ;(slice $& 0 -2)]))
-        (put :var_quote
-             ~(cmt (capture ,(in ca :var_quote))
-                   ,|[:var_quote ;(slice $& 0 -2)]))
         (put :conditional
              ~(cmt (capture ,(in ca :conditional))
                    ,|[:conditional ;(slice $& 0 -2)]))
         (put :conditional_splicing
              ~(cmt (capture ,(in ca :conditional_splicing))
                    ,|[:conditional_splicing ;(slice $& 0 -2)]))
-        (put :namespaced_map
-             ~(cmt (capture ,(in ca :namespaced_map))
-                   ,|[:namespaced_map ;(slice $& 0 -2)]))
+        (put :deprecated_metadata_entry
+             ~(cmt (capture ,(in ca :deprecated_metadata_entry))
+                   ,|[:deprecated_metadata_entry ;(slice $& 0 -2)]))
+        (put :deref
+             ~(cmt (capture ,(in ca :deref))
+                   ,|[:deref ;(slice $& 0 -2)]))
         (put :discard
              ~(cmt (capture ,(in ca :discard))
                    ,|[:discard ;(slice $& 0 -2)]))
-        (put :tag
-             ~(cmt (capture ,(in ca :tag))
-                   ,|[:tag ;(slice $& 0 -2)]))
         (put :eval
              ~(cmt (capture ,(in ca :eval))
                    ,|[:eval ;(slice $& 0 -2)]))
+        (put :metadata
+             ~(cmt (capture ,(in ca :metadata))
+                   ,|[:metadata ;(slice $& 0 -2)]))
+        (put :metadata_entry
+             ~(cmt (capture ,(in ca :metadata_entry))
+                   ,|[:metadata_entry ;(slice $& 0 -2)]))
+        (put :namespaced_map
+             ~(cmt (capture ,(in ca :namespaced_map))
+                   ,|[:namespaced_map ;(slice $& 0 -2)]))
+        (put :quote
+             ~(cmt (capture ,(in ca :quote))
+                   ,|[:quote ;(slice $& 0 -2)]))
+        (put :tag
+             ~(cmt (capture ,(in ca :tag))
+                   ,|[:tag ;(slice $& 0 -2)]))
+        (put :unquote
+             ~(cmt (capture ,(in ca :unquote))
+                   ,|[:unquote ;(slice $& 0 -2)]))
+        (put :unquote_splicing
+             ~(cmt (capture ,(in ca :unquote_splicing))
+                   ,|[:unquote_splicing ;(slice $& 0 -2)]))
+        (put :var_quote
+             ~(cmt (capture ,(in ca :var_quote))
+                   ,|[:var_quote ;(slice $& 0 -2)]))
         #
         (put :symbolic
              ~(cmt (capture ,(in ca :symbolic))
-                   ,|[:symbolic (in ;(slice $& 0 -2) 1)]))
+                   ,|[:symbolic (get-in $& [0 1])]))
         #
         (put :auto_resolve
              ~(cmt (capture ,(in ca :auto_resolve))
                    ,(fn [_] [:auto_resolve])))
         #
         (put :regex
-             ~(sequence "#"
-                        (cmt (capture :string)
-                             ,|[:regex (in $& 1)])))
+             (tuple
+               ;(put (array ;(in ca :regex))
+                     2 ~(cmt (capture ,(get-in ca [:regex 2]))
+                             ,|[:regex (in $& 1)]))))
         #
         (put :fn
-             ~(sequence "#"
-                        (cmt (capture :list)
-                             ,|[:fn ;(slice $& 0 -2)])))
+             (tuple
+               ;(put (array ;(in ca :fn))
+                     2 ~(cmt (capture ,(get-in ca [:fn 2]))
+                             ,|[:fn (in $& 0)]))))
         #
         (put :list
-             ~(sequence "("
-                        (cmt (capture (any :input))
-                             ,|[:list ;(slice $& 0 -2)])
-                        (choice ")" (error ""))))
-        (put :vector
-             ~(sequence "["
-                        (cmt (capture (any :input))
-                             ,|[:vector ;(slice $& 0 -2)])
-                        (choice "]" (error ""))))
+             (tuple
+               ;(put (array ;(in ca :list))
+                     2 ~(cmt (capture ,(get-in ca [:list 2]))
+                             ,|[:list ;(slice $& 0 -2)]))))
         (put :map
-             ~(sequence "{"
-                        (cmt (capture (any :input))
-                             ,|[:map ;(slice $& 0 -2)])
-                        (choice "}" (error ""))))
+             (tuple
+               ;(put (array ;(in ca :map))
+                     2 ~(cmt (capture ,(get-in ca [:map 2]))
+                             ,|[:map ;(slice $& 0 -2)]))))
         (put :set
-             ~(sequence "#{"
-                        (cmt (capture (any :input))
-                             ,|[:set ;(slice $& 0 -2)])
-                        (choice "}" (error ""))))
+             (tuple
+               ;(put (array ;(in ca :set))
+                     2 ~(cmt (capture ,(get-in ca [:set 2]))
+                             ,|[:set ;(slice $& 0 -2)]))))
+        (put :vector
+             (tuple
+               ;(put (array ;(in ca :vector))
+                     2 ~(cmt (capture ,(get-in ca [:vector 2]))
+                             ,|[:vector ;(slice $& 0 -2)]))))
         # tried using a table with a peg but had a problem, so use a struct
         table/to-struct)))
 
