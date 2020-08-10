@@ -782,16 +782,6 @@
 
   (comment
 
-    (let [src
-          (slurp (string (os/getenv "HOME")
-                   "/src/alc.x-as-tests/src/alc/x_as_tests/main.clj"))
-          almost-ast
-          (peg/match cg-capture-ast src)
-          ast
-          (array/insert almost-ast 0 :code)]
-      (= (string src)
-        (code ast)))
-
     # round trip - 73 ms per
     (let [start (os/time)]
       (each i (range 1000)
