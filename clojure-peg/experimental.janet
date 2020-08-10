@@ -561,6 +561,225 @@
 
 (comment
 
+  (peg/match cg-capture-ast-with-start-loc-as-number ":a")
+  # => @[[:keyword 0 ":a"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "\"smile\"")
+  # => @[[:string 0 "\"smile\""]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "1/2")
+  # => @[[:number 0 "1/2"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "defmacro")
+  # => @[[:symbol 0 "defmacro"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "::a")
+  # => @[[:macro_keyword 0 "::a"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "\\a")
+  # => @[[:character 0 "\\a"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "{}")
+  # => @[[:map 0]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "{:a 1}")
+  ``
+  @[[:map 0
+     [:keyword 1 ":a"]
+     [:whitespace 3 " "]
+     [:number 4 "1"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#::{}")
+  ``
+  @[[:namespaced_map 0
+     [:auto_resolve 1]
+     [:map 3]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#::a{}")
+  ``
+  @[[:namespaced_map 0
+     [:macro_keyword 1 "::a"]
+     [:map 4]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#:a{}")
+  ``
+  @[[:namespaced_map 0
+     [:keyword 1 ":a"]
+     [:map 3]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "[]")
+  # => @[[:vector 0]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "[:a]")
+  ``
+  @[[:vector 0
+     [:keyword 1 ":a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "()")
+  # => @[[:list 0]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "(:a)")
+  ``
+  @[[:list 0
+     [:keyword 1 ":a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "^{:a true} [:a]")
+  ``
+  @[[:metadata 0
+     [:metadata_entry 0
+      [:map 1
+       [:keyword 2 ":a"]
+       [:whitespace 4 " "]
+       [:symbol 5 "true"]]]
+     [:whitespace 10 " "]
+     [:vector 11
+      [:keyword 12 ":a"]]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#^{:a true} [:a]")
+  ``
+  @[[:metadata 0
+     [:deprecated_metadata_entry 0
+      [:map 2
+       [:keyword 3 ":a"]
+       [:whitespace 5 " "]
+       [:symbol 6 "true"]]]
+     [:whitespace 11 " "]
+     [:vector 12
+      [:keyword 13 ":a"]]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "`a")
+  ``
+  @[[:backtick 0
+     [:symbol 1 "a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "'a")
+  ``
+  @[[:quote 0
+     [:symbol 1 "a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "~a")
+  ``
+  @[[:unquote 0
+     [:symbol 1 "a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "~@a")
+  ``
+  @[[:unquote_splicing 0
+     [:symbol 2 "a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "@a")
+  ``
+  @[[:deref 0
+     [:symbol 1 "a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#(inc %)")
+  ``
+  @[[:fn 0
+     [:list 1
+      [:symbol 2 "inc"]
+      [:whitespace 5 " "]
+      [:symbol 6 "%"]]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#\".\"")
+  # => @[[:regex 0 "\".\""]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#{:a}")
+  ``
+  @[[:set 0
+     [:keyword 2 ":a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#'a")
+  ``
+  @[[:var_quote 0
+     [:symbol 2 "a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#_ a")
+  ``
+  @[[:discard 0
+     [:whitespace 2 " "]
+     [:symbol 3 "a"]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number
+    "#uuid \"00000000-0000-0000-0000-000000000000\"")
+  ``
+  @[[:tag 0
+     [:symbol 1 "uuid"]
+     [:whitespace 5 " "]
+     [:string 6 "\"00000000-0000-0000-0000-000000000000\""]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number " ")
+  # => @[[:whitespace 0 " "]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "; hey")
+  # => @[[:comment 0 "; hey"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#! foo")
+  # => @[[:comment 0 "#! foo"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#?(:clj 0 :cljr 1)")
+  ``
+  @[[:conditional 0
+     [:list 2
+      [:keyword 3 ":clj"]
+      [:whitespace 7 " "]
+      [:number 8 "0"]
+      [:whitespace 9 " "]
+      [:keyword 10 ":cljr"]
+      [:whitespace 15 " "]
+      [:number 16 "1"]]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number
+             "#?@(:clj [0 1] :cljr [1 2])")
+  ``
+  @[[:conditional_splicing 0
+     [:list 3
+      [:keyword 4 ":clj"]
+      [:whitespace 8 " "]
+      [:vector 9
+       [:number 10 "0"]
+       [:whitespace 11 " "]
+       [:number 12 "1"]]
+      [:whitespace 14 " "]
+      [:keyword 15 ":cljr"]
+      [:whitespace 20 " "]
+      [:vector 21
+       [:number 22 "1"]
+       [:whitespace 23 " "]
+       [:number 24 "2"]]]]]
+  ``
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "##NaN")
+  # => @[[:symbolic 0 "NaN"]]
+
+  (peg/match cg-capture-ast-with-start-loc-as-number "#=a")
+  ``
+  @[[:eval 0
+     [:symbol 2 "a"]]]
+  ``
+
+  )
+
+(comment
+
   (comment
 
     (let [src
