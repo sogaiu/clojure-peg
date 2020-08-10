@@ -494,13 +494,41 @@
     (each elt (drop 1 ast)
           (code* elt buf))
     #
+    :character
+    (buffer/push-string buf (in ast 1))
+    :comment
+    (buffer/push-string buf (in ast 1))
+    :keyword
+    (buffer/push-string buf (in ast 1))
+    :macro_keyword
+    (buffer/push-string buf (in ast 1))
+    :number
+    (buffer/push-string buf (in ast 1))
+    :string
+    (buffer/push-string buf (in ast 1))
+    :symbol
+    (buffer/push-string buf (in ast 1))
+    :whitespace
+    (buffer/push-string buf (in ast 1))
+    #
     :list
     (do
       (buffer/push-string buf "(")
       (each elt (drop 1 ast)
             (code* elt buf))
       (buffer/push-string buf ")"))
-    #
+    :map
+    (do
+      (buffer/push-string buf "{")
+      (each elt (drop 1 ast)
+            (code* elt buf))
+      (buffer/push-string buf "}"))
+    :set
+    (do
+      (buffer/push-string buf "#{")
+      (each elt (drop 1 ast)
+            (code* elt buf))
+      (buffer/push-string buf "}"))
     :vector
     (do
       (buffer/push-string buf "[")
@@ -508,118 +536,71 @@
             (code* elt buf))
       (buffer/push-string buf "]"))
     #
-    :map
-    (do
-      (buffer/push-string buf "{")
-      (each elt (drop 1 ast)
-            (code* elt buf))
-      (buffer/push-string buf "}"))
-    #
-    :set
-    (do
-      (buffer/push-string buf "#{")
-      (each elt (drop 1 ast)
-            (code* elt buf))
-      (buffer/push-string buf "}"))
-    #
     :namespaced_map
     (do
       (buffer/push-string buf "#")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
-    :character
-    (buffer/push-string buf (in ast 1))
-    #
-    :comment
-    (buffer/push-string buf (in ast 1))
-    #
-    :keyword
-    (buffer/push-string buf (in ast 1))
-    #
-    :macro_keyword
-    (buffer/push-string buf (in ast 1))
-    #
-    :number
-    (buffer/push-string buf (in ast 1))
-    #
-    :string
-    (buffer/push-string buf (in ast 1))
-    #
-    :symbol
-    (buffer/push-string buf (in ast 1))
-    #
-    :whitespace
-    (buffer/push-string buf (in ast 1))
-    #
-    :regex
-    (do
-      (buffer/push-string buf "#")
-      (buffer/push-string buf (in ast 1)))
-    #
     :quote
     (do
       (buffer/push-string buf "'")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :fn
     (do
       (buffer/push-string buf "#")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :deref
     (do
       (buffer/push-string buf "@")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :backtick
     (do
       (buffer/push-string buf "`")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :unquote
     (do
       (buffer/push-string buf "~")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :unquote_splicing
     (do
       (buffer/push-string buf "~@")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :discard
     (do
       (buffer/push-string buf "#_")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :var_quote
     (do
       (buffer/push-string buf "#'")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
     :tag
     (do
       (buffer/push-string buf "#")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    #
-    :metadata_entry
-    (each elt (drop 1 ast)
-          (buffer/push-string buf "^")
-          (code* elt buf))
-    #
-    :deprecated_metadata_entry
-    (each elt (drop 1 ast)
-          (buffer/push-string buf "#^")
-          (code* elt buf))
+    :conditional
+    (do
+      (buffer/push-string buf "#?")
+      (each elt (drop 1 ast)
+            (code* elt buf)))
+    :conditional_splicing
+    (do
+      (buffer/push-string buf "#?@")
+      (each elt (drop 1 ast)
+            (code* elt buf)))
+    :eval
+    (do
+      (buffer/push-string buf "#=")
+      (each elt (drop 1 ast)
+            (code* elt buf)))
     #
     :metadata
     (do
@@ -627,31 +608,26 @@
             (code* elt buf))
       (code* (last ast) buf))
     #
-    :auto_resolve
-    (buffer/push-string buf "::")
+    :metadata_entry
+    (each elt (drop 1 ast)
+          (buffer/push-string buf "^")
+          (code* elt buf))
+    :deprecated_metadata_entry
+    (each elt (drop 1 ast)
+          (buffer/push-string buf "#^")
+          (code* elt buf))
     #
+    :regex
+    (do
+      (buffer/push-string buf "#")
+      (buffer/push-string buf (in ast 1)))
     :symbolic
     (do
       (buffer/push-string buf "##")
       (buffer/push-string buf (in ast 1)))
     #
-    :conditional
-    (do
-      (buffer/push-string buf "#?")
-      (each elt (drop 1 ast)
-            (code* elt buf)))
-    #
-    :conditional_splicing
-    (do
-      (buffer/push-string buf "#?@")
-      (each elt (drop 1 ast)
-            (code* elt buf)))
-    #
-    :eval
-    (do
-      (buffer/push-string buf "#=")
-      (each elt (drop 1 ast)
-            (code* elt buf)))
+    :auto_resolve
+    (buffer/push-string buf "::")
     ))
 
 (defn code
