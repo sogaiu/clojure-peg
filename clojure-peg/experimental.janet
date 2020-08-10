@@ -1,196 +1,7 @@
 (import ./grammar :prefix "")
 
-# make a version of cg that matches a single form
-(def cg-one
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
-   # just recognize one form
-   (put :main :input)
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
-
-(comment
-
- (peg/match cg-one "\"\\u0030\"")
- # => @[]
-
- (peg/match cg-one "(def a 1)")
- # => @[]
-
- (peg/match cg-one "[:a :b)")
- # ! "match error in range (6:6)"
-
- (peg/match cg-one "(def a ; hi\n 1)")
- # => @[]
-
- (peg/match cg-one "(def a ; hi 1)")
- # ! "match error in range (14:14)"
-
- (peg/match cg-one "[1]")
- # => @[]
-
- (peg/match cg-one "; hello")
- # => @[]
-
- (peg/match cg-one "8")
- # => @[]
-
- (peg/match cg-one "[:a :b]")
- # => @[]
-
- (peg/match cg-one "[:a :b] 1")
- # => @[]
-
- )
-
-(def cg-capture-all
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
-   # capture all
-   (put :main '(capture (any :input)))
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
-
-(comment
-
- (peg/match cg-capture-all "")
- # => @[""]
-
- (peg/match cg-capture-all "()")
- # => @["()"]
-
- (peg/match cg-capture-all "[]")
- # => @["[]"]
-
- (peg/match cg-capture-all "{}")
- # => @["{}"]
-
- (peg/match cg-capture-all "#{}")
- # => @["#{}"]
-
- (peg/match cg-capture-all "#::{}")
- # => @["#::{}"]
-
- (peg/match cg-capture-all "1")
- # => @["1"]
-
- (peg/match cg-capture-all "1/2")
- # => @["1/2"]
-
- (peg/match cg-capture-all ":a")
- # => @[":a"]
-
- (peg/match cg-capture-all "::a")
- # => @["::a"]
-
- (peg/match cg-capture-all "\"a\"")
- # => @["\"a\""]
-
- (peg/match cg-capture-all "#\".\"")
- # => @["#\".\""]
-
- (peg/match cg-capture-all "#_ a")
- # => @["#_ a"]
-
- (peg/match cg-capture-all "(def a 1) :a")
- # => @["(def a 1) :a"]
-
- )
-
-(def cg-capture-one
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
-   # capture one
-   (put :main '(capture :input))
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
-
-(comment
-
- (def sample-source
-   (string ";; \"my test\"\n"
-           "(+ 1 1)\n"
-           ";; => 2\n"))
-
- (peg/match cg-capture-one sample-source)
- # => @[";; \"my test\""]
-
- (peg/match cg-capture-one sample-source 12)
- # => @["\n"]
-
- (peg/match cg-capture-one sample-source 13)
- # => @["(+ 1 1)"]
-
- (peg/match cg-capture-one sample-source 21)
- # => @[";; => 2"]
-
- )
-
-(def cg-capture-top-levels
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
-   # capture each top-level
-   (put :main '(any (capture :input)))
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
-
-(comment
-
- (peg/match cg-capture-top-levels "")
-  # => @[]
-
- (peg/match cg-capture-top-levels "()")
-  # => @["()"]
-
- (peg/match cg-capture-top-levels "[]")
- # => @["[]"]
-
- (peg/match cg-capture-top-levels "{}")
- # => @["{}"]
-
- (peg/match cg-capture-top-levels "#{}")
- # => @["#{}"]
-
- (peg/match cg-capture-top-levels "#::{}")
- # => @["#::{}"]
-
- (peg/match cg-capture-top-levels "1")
- # => @["1"]
-
- (peg/match cg-capture-top-levels "1/2")
- # => @["1/2"]
-
- (peg/match cg-capture-top-levels ":a")
- # => @[":a"]
-
- (peg/match cg-capture-top-levels "::a")
- # => @["::a"]
-
- (peg/match cg-capture-top-levels "\"a\"")
- # => @["\"a\""]
-
- (peg/match cg-capture-top-levels "#\".\"")
- # => @["#\".\""]
-
- (peg/match cg-capture-top-levels "#_ a")
- # => @["#_ a"]
-
- (peg/match cg-capture-top-levels "(def a 1) :a")
- # => @["(def a 1)" " " ":a"]
-
- (peg/match cg-capture-top-levels "^{:a true} [:a :b]")
- # => @["^{:a true} [:a :b]"]
-
- (peg/match cg-capture-top-levels "\\a")
- # => @["\\a"]
-
- )
-
-(def cg-capture-ast-with-start-loc-as-number
+# XXX: capture and store the start position as a number
+(def cg-capture-ast
   # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
     (each kwd [:character :comment :keyword :macro_keyword :number
@@ -259,28 +70,28 @@
 
 (comment
 
-  (peg/match cg-capture-ast-with-start-loc-as-number ":a")
+  (peg/match cg-capture-ast ":a")
   # => @[[:keyword 0 ":a"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "\"smile\"")
+  (peg/match cg-capture-ast "\"smile\"")
   # => @[[:string 0 "\"smile\""]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "1/2")
+  (peg/match cg-capture-ast "1/2")
   # => @[[:number 0 "1/2"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "defmacro")
+  (peg/match cg-capture-ast "defmacro")
   # => @[[:symbol 0 "defmacro"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "::a")
+  (peg/match cg-capture-ast "::a")
   # => @[[:macro_keyword 0 "::a"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "\\a")
+  (peg/match cg-capture-ast "\\a")
   # => @[[:character 0 "\\a"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "{}")
+  (peg/match cg-capture-ast "{}")
   # => @[[:map 0]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "{:a 1}")
+  (peg/match cg-capture-ast "{:a 1}")
   ``
   @[[:map 0
      [:keyword 1 ":a"]
@@ -288,46 +99,46 @@
      [:number 4 "1"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#::{}")
+  (peg/match cg-capture-ast "#::{}")
   ``
   @[[:namespaced_map 0
      [:auto_resolve 1]
      [:map 3]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#::a{}")
+  (peg/match cg-capture-ast "#::a{}")
   ``
   @[[:namespaced_map 0
      [:macro_keyword 1 "::a"]
      [:map 4]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#:a{}")
+  (peg/match cg-capture-ast "#:a{}")
   ``
   @[[:namespaced_map 0
      [:keyword 1 ":a"]
      [:map 3]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "[]")
+  (peg/match cg-capture-ast "[]")
   # => @[[:vector 0]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "[:a]")
+  (peg/match cg-capture-ast "[:a]")
   ``
   @[[:vector 0
      [:keyword 1 ":a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "()")
+  (peg/match cg-capture-ast "()")
   # => @[[:list 0]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "(:a)")
+  (peg/match cg-capture-ast "(:a)")
   ``
   @[[:list 0
      [:keyword 1 ":a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "^{:a true} [:a]")
+  (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
   @[[:metadata 0
      [:metadata_entry 0
@@ -340,7 +151,7 @@
       [:keyword 12 ":a"]]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#^{:a true} [:a]")
+  (peg/match cg-capture-ast "#^{:a true} [:a]")
   ``
   @[[:metadata 0
      [:deprecated_metadata_entry 0
@@ -353,37 +164,37 @@
       [:keyword 13 ":a"]]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "`a")
+  (peg/match cg-capture-ast "`a")
   ``
   @[[:backtick 0
      [:symbol 1 "a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "'a")
+  (peg/match cg-capture-ast "'a")
   ``
   @[[:quote 0
      [:symbol 1 "a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "~a")
+  (peg/match cg-capture-ast "~a")
   ``
   @[[:unquote 0
      [:symbol 1 "a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "~@a")
+  (peg/match cg-capture-ast "~@a")
   ``
   @[[:unquote_splicing 0
      [:symbol 2 "a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "@a")
+  (peg/match cg-capture-ast "@a")
   ``
   @[[:deref 0
      [:symbol 1 "a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#(inc %)")
+  (peg/match cg-capture-ast "#(inc %)")
   ``
   @[[:fn 0
      [:list 1
@@ -392,29 +203,29 @@
       [:symbol 6 "%"]]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#\".\"")
+  (peg/match cg-capture-ast "#\".\"")
   # => @[[:regex 0 "\".\""]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#{:a}")
+  (peg/match cg-capture-ast "#{:a}")
   ``
   @[[:set 0
      [:keyword 2 ":a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#'a")
+  (peg/match cg-capture-ast "#'a")
   ``
   @[[:var_quote 0
      [:symbol 2 "a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#_ a")
+  (peg/match cg-capture-ast "#_ a")
   ``
   @[[:discard 0
      [:whitespace 2 " "]
      [:symbol 3 "a"]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number
+  (peg/match cg-capture-ast
     "#uuid \"00000000-0000-0000-0000-000000000000\"")
   ``
   @[[:tag 0
@@ -423,16 +234,16 @@
      [:string 6 "\"00000000-0000-0000-0000-000000000000\""]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number " ")
+  (peg/match cg-capture-ast " ")
   # => @[[:whitespace 0 " "]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "; hey")
+  (peg/match cg-capture-ast "; hey")
   # => @[[:comment 0 "; hey"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#! foo")
+  (peg/match cg-capture-ast "#! foo")
   # => @[[:comment 0 "#! foo"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#?(:clj 0 :cljr 1)")
+  (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
   ``
   @[[:conditional 0
      [:list 2
@@ -445,7 +256,7 @@
       [:number 16 "1"]]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number
+  (peg/match cg-capture-ast
              "#?@(:clj [0 1] :cljr [1 2])")
   ``
   @[[:conditional_splicing 0
@@ -465,10 +276,10 @@
        [:number 24 "2"]]]]]
   ``
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "##NaN")
+  (peg/match cg-capture-ast "##NaN")
   # => @[[:symbolic 0 "NaN"]]
 
-  (peg/match cg-capture-ast-with-start-loc-as-number "#=a")
+  (peg/match cg-capture-ast "#=a")
   ``
   @[[:eval 0
      [:symbol 2 "a"]]]
@@ -480,18 +291,9 @@
 
   (comment
 
-    # round trip - 73 ms per
-    (let [start (os/time)]
-      (each i (range 1000)
-            (let [src-str
-                  (string (slurp (string (os/getenv "HOME")
-                                   "/src/clojure/src/clj/clojure/core.clj")))]
-              (= src-str
-                (code (array/insert
-                        (peg/match cg-capture-ast src-str)
-                        0
-                        :code)))))
-      (print (- (os/time) start)))
+    (import ./rewrite)
+
+    (import ./rewrite-with-loc)
 
     (defn test-peg-on-cc
       [a-peg n-iter]
@@ -510,15 +312,20 @@
     #(gcsetinterval 4194304)
     (gccollect)
 
-    # parsing - 57, 58 ms / 35, 37 ms with gc off
-    (test-peg-on-cc
-      cg-capture-ast
-      1000)
+    # just parsing
+    #    gc on: 57, 58, 61 ms
+    #   gc off: 35, 37, 37 ms
+    (test-peg-on-cc rewrite/cg-capture-ast 1000)
 
-    # capture just start and store as number - 66, 68 ms per / 54, 59 ms gc off
-    (test-peg-on-cc
-      cg-capture-ast-with-start-loc-as-number
-      1000)
+    # capture just start and store as number
+    #    gc on: 66, 68, 108, 105, 106 ms per
+    #   gc off: 54, 59, 61 ms per
+    (test-peg-on-cc cg-capture-ast 1000)
+
+    # capture and store both locations
+    #    gc on: 157, 158, 161 ms
+    #   gc off: 71, 66, 77 ms
+    (test-peg-on-cc rewrite-with-loc/cg-capture-ast 1000)
 
     )
 

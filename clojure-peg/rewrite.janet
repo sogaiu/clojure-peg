@@ -728,6 +728,10 @@
   (round-trip "#=(+ a b)")
   # => "#=(+ a b)"
 
+  )
+
+(comment
+
   (comment
 
     (let [src (slurp (string (os/getenv "HOME")
@@ -735,6 +739,16 @@
       (= (string src)
         (code (ast src))))
 
-    )
+    # 73, 75 ms per
+    (let [start (os/time)]
+      (each i (range 1000)
+            (let [src
+                  (slurp (string (os/getenv "HOME")
+                                 "/src/clojure/src/clj/clojure/core.clj"))]
+              (= src
+                 (code (ast src)))))
+      (print (- (os/time) start)))
 
   )
+
+)
