@@ -164,6 +164,9 @@
     #
     :digit (range "09")
     #
+    :ratio_suffix (sequence "/"
+                            (some :digit))
+    #
     :double_suffix
     (sequence (sequence (opt (sequence "."
                                        (any :digit)))
@@ -180,9 +183,6 @@
                            (some (range "07"))))
               (opt "N"))
     #
-    :ratio_suffix (sequence "/"
-                            (some :digit))
-    #
     :macro_keyword (sequence "::"
                              :keyword_head
                              (any :keyword_body))
@@ -196,7 +196,7 @@
                           (set "#'"))
     #
     :allowed_name_character
-    (if-not (set "\r\n\t\f ()[]{}\"@~^;`\\,:#'/")
+    (if-not (set "\f\n\r\t ()[]{}\"@~^;`\\,:#'/")
             1)
     #
     :keyword_body (choice (set ":/")
@@ -215,8 +215,6 @@
                          (choice :named_char
                                  :unicode
                                  :unicode_char))
-    # XXX: this just matches anything...may be not what we want
-    :unicode_char 1
     #
     :named_char (choice "backspace"
                         "formfeed"
@@ -230,6 +228,8 @@
                        (range "09" "af" "AF")
                        (range "09" "af" "AF")
                        (range "09" "af" "AF"))
+    # XXX: this just matches anything...may be not what we want
+    :unicode_char 1
     #
     :symbol (sequence :name_head
                       (any :name_body))
