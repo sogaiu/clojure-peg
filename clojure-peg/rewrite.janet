@@ -1,5 +1,11 @@
 # QUESTIONS:
 #
+# XXX: started "splitting" some forms.  specifically, breaking metadata
+#      apart from what it is metadata for.  however, to be consistent,
+#      there might be other things that should be split too, e.g. possibly
+#      tags as well as discard forms.  any other things?  is this approach
+#      a good idea?
+#
 # XXX: capturing and storing location info has a cost (see
 #      tests at end of experimental.janet).  what is an appropriate way?
 #
@@ -34,8 +40,8 @@
                ~(cmt (capture ,(in ca kwd))
                      ,|[kwd $])))
     (each kwd [:backtick :conditional :conditional_splicing
-               :deprecated_metadata_entry :deref :discard
-               :eval :metadata :metadata_entry :namespaced_map
+               :deprecated_metadata :deref :discard
+               :eval :metadata :namespaced_map
                :quote :tag :unquote :unquote_splicing :var_quote]
           (put ca kwd
                ~(cmt (capture ,(in ca kwd))
@@ -207,25 +213,23 @@
   (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
   @[[:metadata
-     [:metadata_entry
-      [:map
-       [:keyword ":a"] [:whitespace " "]
-       [:symbol "true"]]]
-     [:whitespace " "]
-     [:vector
-      [:keyword ":a"]]]]
+     [:map
+      [:keyword ":a"] [:whitespace " "]
+      [:symbol "true"]]]
+    [:whitespace " "]
+    [:vector
+     [:keyword ":a"]]]
   ``
 
   (peg/match cg-capture-ast "#^{:a true} [:a]")
   ``
-  @[[:metadata
-     [:deprecated_metadata_entry
-      [:map
-       [:keyword ":a"] [:whitespace " "]
-       [:symbol "true"]]]
-     [:whitespace " "]
-     [:vector
-      [:keyword ":a"]]]]
+  @[[:deprecated_metadata
+     [:map
+      [:keyword ":a"] [:whitespace " "]
+      [:symbol "true"]]]
+    [:whitespace " "]
+    [:vector
+     [:keyword ":a"]]]
   ``
 
   (peg/match cg-capture-ast "#uuid \"00000000-0000-0000-0000-000000000000\"")
@@ -408,16 +412,10 @@
             (code* elt buf)))
     #
     :metadata
-    (do
-      (each elt (tuple/slice ast 1 -2)
-            (code* elt buf))
-      (code* (last ast) buf))
-    #
-    :metadata_entry
     (each elt (drop 1 ast)
           (buffer/push-string buf "^")
           (code* elt buf))
-    :deprecated_metadata_entry
+    :deprecated_metadata
     (each elt (drop 1 ast)
           (buffer/push-string buf "#^")
           (code* elt buf))
@@ -540,24 +538,24 @@
           [:string "\"00000000-0000-0000-0000-000000000000\""]]])
   # => "#uuid \"00000000-0000-0000-0000-000000000000\""
 
-  (code [:code [:metadata
-                [:metadata_entry
-                 [:map
-                  [:keyword ":a"] [:whitespace " "]
-                  [:symbol "true"]]]
-                [:whitespace " "]
-                [:vector
-                 [:keyword ":a"]]]])
+  (code [:code
+         [:metadata
+          [:map
+           [:keyword ":a"] [:whitespace " "]
+           [:symbol "true"]]]
+         [:whitespace " "]
+         [:vector
+          [:keyword ":a"]]])
   # => "^{:a true} [:a]"
 
-  (code [:code [:metadata
-                [:deprecated_metadata_entry
-                 [:map
-                  [:keyword ":a"] [:whitespace " "]
-                  [:symbol "true"]]]
-                [:whitespace " "]
-                [:vector
-                 [:keyword ":a"]]]])
+  (code [:code
+         [:deprecated_metadata
+          [:map
+           [:keyword ":a"] [:whitespace " "]
+           [:symbol "true"]]]
+         [:whitespace " "]
+         [:vector
+          [:keyword ":a"]]])
   # => "#^{:a true} [:a]"
 
   (code [:code

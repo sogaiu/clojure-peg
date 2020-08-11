@@ -12,8 +12,8 @@
                     ,|[kwd (first $&)
                            (in $& 1)])))
     (each kwd [:backtick :conditional :conditional_splicing
-               :deprecated_metadata_entry :deref :discard
-               :eval :metadata :metadata_entry :namespaced_map
+               :deprecated_metadata :deref :discard
+               :eval :metadata :namespaced_map
                :quote :tag :unquote :unquote_splicing :var_quote]
           (put ca kwd
                ~(cmt (sequence (position)
@@ -141,27 +141,25 @@
   (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
   @[[:metadata 0
-     [:metadata_entry 0
-      [:map 1
-       [:keyword 2 ":a"]
-       [:whitespace 4 " "]
-       [:symbol 5 "true"]]]
-     [:whitespace 10 " "]
-     [:vector 11
-      [:keyword 12 ":a"]]]]
+     [:map 1
+      [:keyword 2 ":a"]
+      [:whitespace 4 " "]
+      [:symbol 5 "true"]]]
+    [:whitespace 10 " "]
+    [:vector 11
+     [:keyword 12 ":a"]]]
   ``
 
   (peg/match cg-capture-ast "#^{:a true} [:a]")
   ``
-  @[[:metadata 0
-     [:deprecated_metadata_entry 0
-      [:map 2
-       [:keyword 3 ":a"]
-       [:whitespace 5 " "]
-       [:symbol 6 "true"]]]
-     [:whitespace 11 " "]
-     [:vector 12
-      [:keyword 13 ":a"]]]]
+  @[[:deprecated_metadata 0
+     [:map 2
+      [:keyword 3 ":a"]
+      [:whitespace 5 " "]
+      [:symbol 6 "true"]]]
+    [:whitespace 11 " "]
+    [:vector 12
+     [:keyword 13 ":a"]]]
   ``
 
   (peg/match cg-capture-ast "`a")

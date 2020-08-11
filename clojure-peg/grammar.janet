@@ -23,7 +23,9 @@
                                     :whitespace))
                        :form)
     #
-    :form (choice :reader_macro
+    :form (choice :metadata
+                  :deprecated_metadata
+                  :reader_macro
                   :collection
                   :literal)
     #
@@ -32,8 +34,7 @@
                           :quote
                           :unquote_splicing
                           :unquote
-                          :deref
-                          :metadata)
+                          :deref)
     #
     :dispatch (choice :set
                       :fn
@@ -111,37 +112,21 @@
                     :form)
     #
     :metadata
-    (sequence (some (sequence (choice :metadata_entry
-                                      :deprecated_metadata_entry)
-                              (any :non_form)))
-              (choice :collection
-                      :conditional
-                      :namespaced_map
-                      :set
-                      :tag
-                      :fn
-                      :unquote_splicing
-                      :unquote
-                      :deref
-                      :quote
-                      :backtick
+    (sequence "^"
+              (choice :conditional
+                      :map
+                      :string
+                      :macro_keyword
+                      :keyword
                       :symbol))
-    #
-    :metadata_entry (sequence "^"
-                              (choice :conditional
-                                      :map
-                                      :string
-                                      :macro_keyword
-                                      :keyword
-                                      :symbol))
-    #
-    :deprecated_metadata_entry (sequence "#^"
-                                         (choice :conditional
-                                                 :map
-                                                 :string
-                                                 :macro_keyword
-                                                 :keyword
-                                                 :symbol))
+    :deprecated_metadata
+    (sequence "#^"
+              (choice :conditional
+                      :map
+                      :string
+                      :macro_keyword
+                      :keyword
+                      :symbol))
     #
     :collection (choice :list
                         :vector

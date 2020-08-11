@@ -183,7 +183,7 @@
  # => @["(def a 1)" " " ":a"]
 
  (peg/match cg-capture-top-levels "^{:a true} [:a :b]")
- # => @["^{:a true} [:a :b]"]
+ # => @["^{:a true}" " " "[:a :b]"]
 
  (peg/match cg-capture-top-levels "\\a")
  # => @["\\a"]

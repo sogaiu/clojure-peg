@@ -16,8 +16,8 @@
                              :end (last $&)}
                             (in $& 1)])))
     (each kwd [:backtick :conditional :conditional_splicing
-               :deprecated_metadata_entry :deref :discard
-               :eval :metadata :metadata_entry :namespaced_map
+               :deprecated_metadata :deref :discard
+               :eval :metadata :namespaced_map
                :quote :tag :unquote :unquote_splicing :var_quote]
           (put ca kwd
                ~(cmt (sequence (position)
@@ -156,28 +156,26 @@
 
   (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
-  @[[:metadata {:start 0 :end 15}
-     [:metadata_entry {:start 0 :end 10}
-      [:map {:start 1 :end 10}
-       [:keyword {:start 2 :end 4} ":a"]
-       [:whitespace {:start 4 :end 5} " "]
-       [:symbol {:start 5 :end 9} "true"]]]
-     [:whitespace {:start 10 :end 11} " "]
-     [:vector {:start 11 :end 15}
-      [:keyword {:start 12 :end 14} ":a"]]]]
+  @[[:metadata {:start 0 :end 10}
+     [:map {:start 1 :end 10}
+      [:keyword {:start 2 :end 4} ":a"]
+      [:whitespace {:start 4 :end 5} " "]
+      [:symbol {:start 5 :end 9} "true"]]]
+    [:whitespace {:start 10 :end 11} " "]
+    [:vector {:start 11 :end 15}
+     [:keyword {:start 12 :end 14} ":a"]]]
   ``
 
   (peg/match cg-capture-ast "#^{:a true} [:a]")
   ``
-  @[[:metadata {:start 0 :end 16}
-     [:deprecated_metadata_entry {:start 0 :end 11}
-      [:map {:start 2 :end 11}
-       [:keyword {:start 3 :end 5} ":a"]
-       [:whitespace {:start 5 :end 6} " "]
-       [:symbol {:start 6 :end 10} "true"]]]
-     [:whitespace {:start 11 :end 12} " "]
-     [:vector {:start 12 :end 16}
-      [:keyword {:start 13 :end 15} ":a"]]]]
+  @[[:deprecated_metadata {:start 0 :end 11}
+     [:map {:start 2 :end 11}
+      [:keyword {:start 3 :end 5} ":a"]
+      [:whitespace {:start 5 :end 6} " "]
+      [:symbol {:start 6 :end 10} "true"]]]
+    [:whitespace {:start 11 :end 12} " "]
+    [:vector {:start 12 :end 16}
+     [:keyword {:start 13 :end 15} ":a"]]]
   ``
 
   (peg/match cg-capture-ast "`a")
@@ -440,16 +438,10 @@
             (code* elt buf)))
     #
     :metadata
-    (do
-      (each elt (tuple/slice ast 2 -2)
-            (code* elt buf))
-      (code* (last ast) buf))
-    #
-    :metadata_entry
     (each elt (drop 2 ast)
           (buffer/push-string buf "^")
           (code* elt buf))
-    :deprecated_metadata_entry
+    :deprecated_metadata
     (each elt (drop 2 ast)
           (buffer/push-string buf "#^")
           (code* elt buf))
@@ -603,29 +595,26 @@
 
   (code
     [:code
-     [:metadata {:start 0 :end 15}
-                [:metadata_entry {:start 0 :end 10}
-                                 [:map {:start 1 :end 10}
-                                       [:keyword {:start 2 :end 4} ":a"]
-                                       [:whitespace {:start 4 :end 5} " "]
-                                       [:symbol {:start 5 :end 9} "true"]]]
-                [:whitespace {:start 10 :end 11} " "]
-                [:vector {:start 11 :end 15}
-                         [:keyword {:start 12 :end 14} ":a"]]]])
+     [:metadata {:start 0 :end 10}
+      [:map {:start 1 :end 10}
+       [:keyword {:start 2 :end 4} ":a"]
+       [:whitespace {:start 4 :end 5} " "]
+       [:symbol {:start 5 :end 9} "true"]]]
+     [:whitespace {:start 10 :end 11} " "]
+     [:vector {:start 11 :end 15}
+      [:keyword {:start 12 :end 14} ":a"]]])
   # => "^{:a true} [:a]"
 
   (code
     [:code
-     [:metadata {:start 0 :end 16}
-                [:deprecated_metadata_entry
-                 {:start 0 :end 11}
-                 [:map {:start 2 :end 11}
-                       [:keyword {:start 3 :end 5} ":a"]
-                       [:whitespace {:start 5 :end 6} " "]
-                       [:symbol {:start 6 :end 10} "true"]]]
-                [:whitespace {:start 11 :end 12} " "]
-                [:vector {:start 12 :end 16}
-                         [:keyword {:start 13 :end 15} ":a"]]]])
+     [:deprecated_metadata {:start 0 :end 11}
+      [:map {:start 2 :end 11}
+       [:keyword {:start 3 :end 5} ":a"]
+       [:whitespace {:start 5 :end 6} " "]
+       [:symbol {:start 6 :end 10} "true"]]]
+     [:whitespace {:start 11 :end 12} " "]
+     [:vector {:start 12 :end 16}
+      [:keyword {:start 13 :end 15} ":a"]]])
   # => "#^{:a true} [:a]"
 
   (code [:code
