@@ -1,10 +1,12 @@
 (def cg
   ~{:main (any :input)
     #
-    :input (choice :whitespace
-                   :comment
-                   :discard
+    :input (choice :non_form
                    :form)
+    #
+    :non_form (choice :whitespace
+                      :comment
+                      :discard)
     #
     :whitespace (some (set "\f\n\r\t, "))
     #
@@ -13,15 +15,17 @@
                        (any (if-not (set "\r\n")
                                     1)))
     #
+    :discard (sequence "#_"
+                       (opt (sequence (any (choice :comment
+                                                   :whitespace))
+                                      :discard))
+                       (any (choice :comment
+                                    :whitespace))
+                       :form)
+    #
     :form (choice :reader_macro
                   :collection
                   :literal)
-    #
-    :discard (sequence "#_"
-                       (opt (sequence (opt :whitespace)
-                                      :discard))
-                       (opt :whitespace)
-                       :form)
     #
     :reader_macro (choice :dispatch
                           :backtick
@@ -54,31 +58,31 @@
                               (choice :macro_keyword
                                       :auto_resolve
                                       :keyword)
-                              (opt :whitespace)
+                              (any :non_form)
                               :map)
     #
     :conditional (sequence "#?"
-                           (opt :whitespace)
+                           (any :non_form)
                            :list)
     #
     :conditional_splicing (sequence "#?@"
-                                    (opt :whitespace)
+                                    (any :non_form)
                                     :list)
     #
     :auto_resolve "::"
     #
     :var_quote (sequence "#'"
-                         (opt :whitespace)
+                         (any :non_form)
                          :form)
     #
     :eval (sequence "#="
-                    (opt :whitespace)
+                    (any :non_form)
                     (choice :list
                             :symbol))
     #
     :tag (sequence "#"
                    :symbol
-                   (opt :whitespace)
+                   (any :non_form)
                    (choice :tag
                            :collection
                            :literal))
@@ -87,47 +91,53 @@
                         :symbol)
     #
     :backtick (sequence "`"
-                        (opt :whitespace)
+                        (any :non_form)
                         :form)
     #
     :quote (sequence "'"
-                     (opt :whitespace)
+                     (any :non_form)
                      :form)
     #
     :unquote (sequence "~"
-                       (opt :whitespace)
+                       (any :non_form)
                        :form)
     #
     :unquote_splicing (sequence "~@"
-                                (opt :whitespace)
+                                (any :non_form)
                                 :form)
     #
     :deref (sequence "@"
-                    (opt :whitespace)
+                    (any :non_form)
                     :form)
     #
     :metadata
     (sequence (some (sequence (choice :metadata_entry
                                       :deprecated_metadata_entry)
-                              (opt :whitespace)))
+                              (any :non_form)))
               (choice :collection
+                      :conditional
                       :namespaced_map
                       :set
                       :tag
                       :fn
                       :unquote_splicing
                       :unquote
+                      :deref
+                      :quote
+                      :backtick
                       :symbol))
     #
     :metadata_entry (sequence "^"
-                              (choice :map
+                              (choice :conditional
+                                      :map
                                       :string
                                       :macro_keyword
                                       :keyword
                                       :symbol))
     #
     :deprecated_metadata_entry (sequence "#^"
-                                         (choice :map
+                                         (choice :conditional
+                                                 :map
                                                  :string
                                                  :macro_keyword
                                                  :keyword
@@ -158,9 +168,9 @@
     #
     :number (sequence (opt (set "+-"))
                       (some :digit)
-                      (choice :ratio_suffix
-                              :double_suffix
-                              :long_suffix))
+                      (opt (choice :ratio_suffix
+                                   :double_suffix
+                                   :long_suffix)))
     #
     :digit (range "09")
     #
