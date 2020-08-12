@@ -28,15 +28,15 @@
   # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
     # override things that need to be captured
-    (each kwd [:character :comment :keyword :macro_keyword :number
+    (each kwd [:character :comment :keyword :macro-keyword :number
                :string :symbol :whitespace]
           (put ca kwd
                ~(cmt (capture ,(in ca kwd))
                      ,|[kwd $])))
-    (each kwd [:backtick :conditional :conditional_splicing
-               :deprecated_metadata_entry :deref :discard
-               :eval :metadata :metadata_entry :namespaced_map
-               :quote :tag :unquote :unquote_splicing :var_quote]
+    (each kwd [:backtick :conditional :conditional-splicing
+               :deprecated-metadata-entry :deref :discard
+               :eval :metadata :metadata-entry :namespaced-map
+               :quote :tag :unquote :unquote-splicing :var-quote]
           (put ca kwd
                ~(cmt (capture ,(in ca kwd))
                      ,|[kwd ;(slice $& 0 -2)])))
@@ -53,9 +53,9 @@
              ~(cmt (capture ,(in ca :symbolic))
                    ,|[:symbolic (get-in $& [0 1])]))
         #
-        (put :auto_resolve
-             ~(cmt (capture ,(in ca :auto_resolve))
-                   ,(fn [_] [:auto_resolve])))
+        (put :auto-resolve
+             ~(cmt (capture ,(in ca :auto-resolve))
+                   ,(fn [_] [:auto-resolve])))
         #
         (put :regex
              (tuple
@@ -133,13 +133,13 @@
   ``
 
   (peg/match cg-capture-ast "#::a{}")
-  # => @[[:namespaced_map [:macro_keyword "::a"] [:map]]]
+  # => @[[:namespaced-map [:macro-keyword "::a"] [:map]]]
 
   (peg/match cg-capture-ast "#::{}")
-  # => @[[:namespaced_map [:auto_resolve] [:map]]]
+  # => @[[:namespaced-map [:auto-resolve] [:map]]]
 
   (peg/match cg-capture-ast "#:a{}")
-  # => @[[:namespaced_map [:keyword ":a"] [:map]]]
+  # => @[[:namespaced-map [:keyword ":a"] [:map]]]
 
   (peg/match cg-capture-ast "#=a")
   # => @[[:eval [:symbol "a"]]]
@@ -160,7 +160,7 @@
   # => @[[:symbolic "Inf"]]
 
   (peg/match cg-capture-ast "#'a")
-  # => @[[:var_quote [:symbol "a"]]]
+  # => @[[:var-quote [:symbol "a"]]]
 
   (peg/match cg-capture-ast "\\newline")
   # => @[[:character "\\newline"]]
@@ -194,7 +194,7 @@
 
   (peg/match cg-capture-ast "~@(:a :b :c)")
   ``
-  @[[:unquote_splicing
+  @[[:unquote-splicing
      [:list
       [:keyword ":a"] [:whitespace " "]
       [:keyword ":b"] [:whitespace " "]
@@ -207,7 +207,7 @@
   (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
   @[[:metadata
-     [:metadata_entry
+     [:metadata-entry
       [:map
        [:keyword ":a"] [:whitespace " "]
        [:symbol "true"]]]
@@ -219,7 +219,7 @@
   (peg/match cg-capture-ast "#^{:a true} [:a]")
   ``
   @[[:metadata
-     [:deprecated_metadata_entry
+     [:deprecated-metadata-entry
       [:map
        [:keyword ":a"] [:whitespace " "]
        [:symbol "true"]]]
@@ -247,7 +247,7 @@
 
   (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [8 9])")
   ``
-  @[[:conditional_splicing
+  @[[:conditional-splicing
      [:list
       [:keyword ":clj"] [:whitespace " "]
       [:vector
@@ -305,7 +305,7 @@
     (buffer/push-string buf (in ast 1))
     :keyword
     (buffer/push-string buf (in ast 1))
-    :macro_keyword
+    :macro-keyword
     (buffer/push-string buf (in ast 1))
     :number
     (buffer/push-string buf (in ast 1))
@@ -341,7 +341,7 @@
             (code* elt buf))
       (buffer/push-string buf "]"))
     #
-    :namespaced_map
+    :namespaced-map
     (do
       (buffer/push-string buf "#")
       (each elt (drop 1 ast)
@@ -371,7 +371,7 @@
       (buffer/push-string buf "~")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    :unquote_splicing
+    :unquote-splicing
     (do
       (buffer/push-string buf "~@")
       (each elt (drop 1 ast)
@@ -381,7 +381,7 @@
       (buffer/push-string buf "#_")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    :var_quote
+    :var-quote
     (do
       (buffer/push-string buf "#'")
       (each elt (drop 1 ast)
@@ -396,7 +396,7 @@
       (buffer/push-string buf "#?")
       (each elt (drop 1 ast)
             (code* elt buf)))
-    :conditional_splicing
+    :conditional-splicing
     (do
       (buffer/push-string buf "#?@")
       (each elt (drop 1 ast)
@@ -413,11 +413,11 @@
             (code* elt buf))
       (code* (last ast) buf))
     #
-    :metadata_entry
+    :metadata-entry
     (each elt (drop 1 ast)
           (buffer/push-string buf "^")
           (code* elt buf))
-    :deprecated_metadata_entry
+    :deprecated-metadata-entry
     (each elt (drop 1 ast)
           (buffer/push-string buf "#^")
           (code* elt buf))
@@ -431,7 +431,7 @@
       (buffer/push-string buf "##")
       (buffer/push-string buf (in ast 1)))
     #
-    :auto_resolve
+    :auto-resolve
     (buffer/push-string buf "::")
     ))
 
@@ -523,7 +523,7 @@
   (code [:code [:unquote [:symbol "a"]]])
   # => "~a"
 
-  (code [:code [:unquote_splicing [:symbol "a"]]])
+  (code [:code [:unquote-splicing [:symbol "a"]]])
   # => "~@a"
 
   (code [:code
@@ -531,7 +531,7 @@
           [:whitespace " "] [:symbol "a"]]])
   # => "#_ a"
 
-  (code [:code [:var_quote [:symbol "a"]]])
+  (code [:code [:var-quote [:symbol "a"]]])
   # => "#'a"
 
   (code [:code
@@ -541,7 +541,7 @@
   # => "#uuid \"00000000-0000-0000-0000-000000000000\""
 
   (code [:code [:metadata
-                [:metadata_entry
+                [:metadata-entry
                  [:map
                   [:keyword ":a"] [:whitespace " "]
                   [:symbol "true"]]]
@@ -551,7 +551,7 @@
   # => "^{:a true} [:a]"
 
   (code [:code [:metadata
-                [:deprecated_metadata_entry
+                [:deprecated-metadata-entry
                  [:map
                   [:keyword ":a"] [:whitespace " "]
                   [:symbol "true"]]]
@@ -561,24 +561,24 @@
   # => "#^{:a true} [:a]"
 
   (code [:code
-         [:namespaced_map
-          [:macro_keyword "::a"]
+         [:namespaced-map
+          [:macro-keyword "::a"]
           [:map]]])
   # => "#::a{}"
 
   (code [:code
-         [:namespaced_map
-          [:auto_resolve]
+         [:namespaced-map
+          [:auto-resolve]
           [:map]]])
   # => "#::{}"
 
   (code [:code
-         [:namespaced_map
+         [:namespaced-map
           [:keyword ":a"]
           [:map]]])
   # => "#:a{}"
 
-  (code [:code [:macro_keyword "::a"]])
+  (code [:code [:macro-keyword "::a"]])
   # => "::a"
 
   (code [:code [:symbolic "Inf"]])
@@ -594,7 +594,7 @@
   # => "#?(:clj 0 :cljr 1)"
 
   (code [:code
-          [:conditional_splicing
+          [:conditional-splicing
            [:list
             [:keyword ":clj"] [:whitespace " "]
             [:vector

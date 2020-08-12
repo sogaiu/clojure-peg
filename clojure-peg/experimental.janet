@@ -4,17 +4,17 @@
 (def cg-capture-ast
   # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
-    (each kwd [:character :comment :keyword :macro_keyword :number
+    (each kwd [:character :comment :keyword :macro-keyword :number
                :string :symbol :whitespace]
           (put ca kwd
                ~(cmt (sequence (position)
                                (capture ,(in ca kwd)))
                     ,|[kwd (first $&)
                            (in $& 1)])))
-    (each kwd [:backtick :conditional :conditional_splicing
-               :deprecated_metadata_entry :deref :discard
-               :eval :metadata :metadata_entry :namespaced_map
-               :quote :tag :unquote :unquote_splicing :var_quote]
+    (each kwd [:backtick :conditional :conditional-splicing
+               :deprecated-metadata-entry :deref :discard
+               :eval :metadata :metadata-entry :namespaced-map
+               :quote :tag :unquote :unquote-splicing :var-quote]
           (put ca kwd
                ~(cmt (sequence (position)
                                (capture ,(in ca kwd)))
@@ -60,11 +60,11 @@
                ,|[:symbolic (first $&)
                             (last ;(slice $& 1 -2))]))
     #
-    (put ca :auto_resolve
+    (put ca :auto-resolve
          ~(cmt (sequence (position)
-                         (capture ,(in ca :auto_resolve)))
+                         (capture ,(in ca :auto-resolve)))
                ,(fn [& caps]
-                  [:auto_resolve (first caps)])))
+                  [:auto-resolve (first caps)])))
     # tried using a table with a peg but had a problem, so use a struct
     (table/to-struct ca)))
 
@@ -83,7 +83,7 @@
   # => @[[:symbol 0 "defmacro"]]
 
   (peg/match cg-capture-ast "::a")
-  # => @[[:macro_keyword 0 "::a"]]
+  # => @[[:macro-keyword 0 "::a"]]
 
   (peg/match cg-capture-ast "\\a")
   # => @[[:character 0 "\\a"]]
@@ -101,21 +101,21 @@
 
   (peg/match cg-capture-ast "#::{}")
   ``
-  @[[:namespaced_map 0
-     [:auto_resolve 1]
+  @[[:namespaced-map 0
+     [:auto-resolve 1]
      [:map 3]]]
   ``
 
   (peg/match cg-capture-ast "#::a{}")
   ``
-  @[[:namespaced_map 0
-     [:macro_keyword 1 "::a"]
+  @[[:namespaced-map 0
+     [:macro-keyword 1 "::a"]
      [:map 4]]]
   ``
 
   (peg/match cg-capture-ast "#:a{}")
   ``
-  @[[:namespaced_map 0
+  @[[:namespaced-map 0
      [:keyword 1 ":a"]
      [:map 3]]]
   ``
@@ -141,7 +141,7 @@
   (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
   @[[:metadata 0
-     [:metadata_entry 0
+     [:metadata-entry 0
       [:map 1
        [:keyword 2 ":a"]
        [:whitespace 4 " "]
@@ -154,7 +154,7 @@
   (peg/match cg-capture-ast "#^{:a true} [:a]")
   ``
   @[[:metadata 0
-     [:deprecated_metadata_entry 0
+     [:deprecated-metadata-entry 0
       [:map 2
        [:keyword 3 ":a"]
        [:whitespace 5 " "]
@@ -184,7 +184,7 @@
 
   (peg/match cg-capture-ast "~@a")
   ``
-  @[[:unquote_splicing 0
+  @[[:unquote-splicing 0
      [:symbol 2 "a"]]]
   ``
 
@@ -214,7 +214,7 @@
 
   (peg/match cg-capture-ast "#'a")
   ``
-  @[[:var_quote 0
+  @[[:var-quote 0
      [:symbol 2 "a"]]]
   ``
 
@@ -259,7 +259,7 @@
   (peg/match cg-capture-ast
              "#?@(:clj [0 1] :cljr [1 2])")
   ``
-  @[[:conditional_splicing 0
+  @[[:conditional-splicing 0
      [:list 3
       [:keyword 4 ":clj"]
       [:whitespace 8 " "]

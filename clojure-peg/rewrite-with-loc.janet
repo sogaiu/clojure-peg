@@ -6,7 +6,7 @@
 (def cg-capture-ast
   # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
-    (each kwd [:character :comment :keyword :macro_keyword :number
+    (each kwd [:character :comment :keyword :macro-keyword :number
                :string :symbol :whitespace]
           (put ca kwd
                ~(cmt (sequence (position)
@@ -15,10 +15,10 @@
                      ,|[kwd {:start (first $&)
                              :end (last $&)}
                             (in $& 1)])))
-    (each kwd [:backtick :conditional :conditional_splicing
-               :deprecated_metadata_entry :deref :discard
-               :eval :metadata :metadata_entry :namespaced_map
-               :quote :tag :unquote :unquote_splicing :var_quote]
+    (each kwd [:backtick :conditional :conditional-splicing
+               :deprecated-metadata-entry :deref :discard
+               :eval :metadata :metadata-entry :namespaced-map
+               :quote :tag :unquote :unquote-splicing :var-quote]
           (put ca kwd
                ~(cmt (sequence (position)
                                (capture ,(in ca kwd))
@@ -74,12 +74,12 @@
                              :end (last $&)}
                             (last ;(slice $& 1 -3))]))
     #
-    (put ca :auto_resolve
+    (put ca :auto-resolve
          ~(cmt (sequence (position)
-                         (capture ,(in ca :auto_resolve))
+                         (capture ,(in ca :auto-resolve))
                          (position))
                ,(fn [& caps]
-                  [:auto_resolve {:start (first caps)
+                  [:auto-resolve {:start (first caps)
                                   :end (last caps)}])))
     # tried using a table with a peg but had a problem, so use a struct
     (table/to-struct ca)))
@@ -99,7 +99,7 @@
   # => @[[:symbol {:start 0 :end 8} "defmacro"]]
 
   (peg/match cg-capture-ast "::a")
-  # => @[[:macro_keyword {:start 0 :end 3} "::a"]]
+  # => @[[:macro-keyword {:start 0 :end 3} "::a"]]
 
   (peg/match cg-capture-ast "\\a")
   # => @[[:character {:start 0 :end 2} "\\a"]]
@@ -117,21 +117,21 @@
 
   (peg/match cg-capture-ast "#::{}")
   ``
-  @[[:namespaced_map {:start 0 :end 5}
-     [:auto_resolve {:start 1 :end 3}]
+  @[[:namespaced-map {:start 0 :end 5}
+     [:auto-resolve {:start 1 :end 3}]
      [:map {:start 3 :end 5}]]]
   ``
 
   (peg/match cg-capture-ast "#::a{}")
   ``
-  @[[:namespaced_map {:start 0 :end 6}
-     [:macro_keyword {:start 1 :end 4} "::a"]
+  @[[:namespaced-map {:start 0 :end 6}
+     [:macro-keyword {:start 1 :end 4} "::a"]
      [:map {:start 4 :end 6}]]]
   ``
 
   (peg/match cg-capture-ast "#:a{}")
   ``
-  @[[:namespaced_map {:start 0 :end 5}
+  @[[:namespaced-map {:start 0 :end 5}
      [:keyword {:start 1 :end 3} ":a"]
      [:map {:start 3 :end 5}]]]
   ``
@@ -157,7 +157,7 @@
   (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
   @[[:metadata {:start 0 :end 15}
-     [:metadata_entry {:start 0 :end 10}
+     [:metadata-entry {:start 0 :end 10}
       [:map {:start 1 :end 10}
        [:keyword {:start 2 :end 4} ":a"]
        [:whitespace {:start 4 :end 5} " "]
@@ -170,7 +170,7 @@
   (peg/match cg-capture-ast "#^{:a true} [:a]")
   ``
   @[[:metadata {:start 0 :end 16}
-     [:deprecated_metadata_entry {:start 0 :end 11}
+     [:deprecated-metadata-entry {:start 0 :end 11}
       [:map {:start 2 :end 11}
        [:keyword {:start 3 :end 5} ":a"]
        [:whitespace {:start 5 :end 6} " "]
@@ -200,7 +200,7 @@
 
   (peg/match cg-capture-ast "~@a")
   ``
-  @[[:unquote_splicing {:start 0 :end 3}
+  @[[:unquote-splicing {:start 0 :end 3}
      [:symbol {:start 2 :end 3} "a"]]]
   ``
 
@@ -230,7 +230,7 @@
 
   (peg/match cg-capture-ast "#'a")
   ``
-  @[[:var_quote {:start 0 :end 3}
+  @[[:var-quote {:start 0 :end 3}
      [:symbol {:start 2 :end 3} "a"]]]
   ``
 
@@ -275,7 +275,7 @@
 
   (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [1 2])")
   ``
-  @[[:conditional_splicing {:start 0 :end 27}
+  @[[:conditional-splicing {:start 0 :end 27}
      [:list {:start 3 :end 27}
       [:keyword {:start 4 :end 8} ":clj"]
       [:whitespace {:start 8 :end 9} " "]
@@ -337,7 +337,7 @@
     (buffer/push-string buf (in ast 2))
     :keyword
     (buffer/push-string buf (in ast 2))
-    :macro_keyword
+    :macro-keyword
     (buffer/push-string buf (in ast 2))
     :number
     (buffer/push-string buf (in ast 2))
@@ -373,7 +373,7 @@
             (code* elt buf))
       (buffer/push-string buf "]"))
     #
-    :namespaced_map
+    :namespaced-map
     (do
       (buffer/push-string buf "#")
       (each elt (drop 2 ast)
@@ -403,7 +403,7 @@
       (buffer/push-string buf "~")
       (each elt (drop 2 ast)
             (code* elt buf)))
-    :unquote_splicing
+    :unquote-splicing
     (do
       (buffer/push-string buf "~@")
       (each elt (drop 2 ast)
@@ -413,7 +413,7 @@
       (buffer/push-string buf "#_")
       (each elt (drop 2 ast)
             (code* elt buf)))
-    :var_quote
+    :var-quote
     (do
       (buffer/push-string buf "#'")
       (each elt (drop 2 ast)
@@ -428,7 +428,7 @@
       (buffer/push-string buf "#?")
       (each elt (drop 2 ast)
             (code* elt buf)))
-    :conditional_splicing
+    :conditional-splicing
     (do
       (buffer/push-string buf "#?@")
       (each elt (drop 2 ast)
@@ -445,11 +445,11 @@
             (code* elt buf))
       (code* (last ast) buf))
     #
-    :metadata_entry
+    :metadata-entry
     (each elt (drop 2 ast)
           (buffer/push-string buf "^")
           (code* elt buf))
-    :deprecated_metadata_entry
+    :deprecated-metadata-entry
     (each elt (drop 2 ast)
           (buffer/push-string buf "#^")
           (code* elt buf))
@@ -463,7 +463,7 @@
       (buffer/push-string buf "##")
       (buffer/push-string buf (in ast 2)))
     #
-    :auto_resolve
+    :auto-resolve
     (buffer/push-string buf "::")
     ))
 
@@ -578,7 +578,7 @@
   # => "~a"
 
   (code [:code
-         [:unquote_splicing  {:start 0 :end 3}
+         [:unquote-splicing  {:start 0 :end 3}
           [:symbol  {:start 2 :end 3} "a"]]])
   # => "~@a"
 
@@ -589,7 +589,7 @@
   # => "#_ a"
 
   (code [:code
-         [:var_quote {:start 0 :end 3}
+         [:var-quote {:start 0 :end 3}
           [:symbol {:start 2 :end 3} "a"]]])
   # => "#'a"
 
@@ -604,7 +604,7 @@
   (code
     [:code
      [:metadata {:start 0 :end 15}
-                [:metadata_entry {:start 0 :end 10}
+                [:metadata-entry {:start 0 :end 10}
                                  [:map {:start 1 :end 10}
                                        [:keyword {:start 2 :end 4} ":a"]
                                        [:whitespace {:start 4 :end 5} " "]
@@ -617,7 +617,7 @@
   (code
     [:code
      [:metadata {:start 0 :end 16}
-                [:deprecated_metadata_entry
+                [:deprecated-metadata-entry
                  {:start 0 :end 11}
                  [:map {:start 2 :end 11}
                        [:keyword {:start 3 :end 5} ":a"]
@@ -629,25 +629,25 @@
   # => "#^{:a true} [:a]"
 
   (code [:code
-         [:namespaced_map {:start 0 :end 6}
-                          [:macro_keyword {:start 1 :end 4} "::a"]
+         [:namespaced-map {:start 0 :end 6}
+                          [:macro-keyword {:start 1 :end 4} "::a"]
                           [:map {:start 4 :end 6}]]])
   # => "#::a{}"
 
   (code [:code
-         [:namespaced_map {:start 0 :end 5}
-          [:auto_resolve {:start 1 :end 3}]
+         [:namespaced-map {:start 0 :end 5}
+          [:auto-resolve {:start 1 :end 3}]
           [:map {:start 3 :end 5}]]])
   # => "#::{}"
 
   (code [:code
-         [:namespaced_map {:start 0 :end 5}
+         [:namespaced-map {:start 0 :end 5}
           [:keyword  {:start 1 :end 3} ":a"]
           [:map {:start 3 :end 5}]]])
   # => "#:a{}"
 
   (code [:code
-         [:macro_keyword {:start 0 :end 3} "::a"]])
+         [:macro-keyword {:start 0 :end 3} "::a"]])
   # => "::a"
 
   (code [:code
@@ -668,7 +668,7 @@
 
   (code
     [:code
-     [:conditional_splicing
+     [:conditional-splicing
       {:start 0 :end 27}
       [:list {:start 3 :end 27}
              [:keyword {:start 4 :end 8} ":clj"]
