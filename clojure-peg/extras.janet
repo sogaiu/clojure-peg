@@ -49,7 +49,7 @@
    # cg is a struct, need something mutable
    (table ;(kvs cg))
    # capture all
-   (put :main '(capture (any :input)))
+   (put :main ~(capture ,(in cg :main)))
    # tried using a table with a peg but had a problem, so use a struct
    table/to-struct))
 
