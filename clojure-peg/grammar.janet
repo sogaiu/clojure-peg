@@ -1,5 +1,5 @@
 (def cg
-  ~{:main (any :input)
+  ~{:main (some :input)
     #
     :input (choice :non-form
                    :form)
@@ -252,6 +252,9 @@
     })
 
 (comment
+
+  (peg/match cg "")
+  # => nil
 
   (peg/match cg " ")
   # => @[]

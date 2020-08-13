@@ -56,7 +56,7 @@
 (comment
 
  (peg/match cg-capture-all "")
- # => @[""]
+ # => nil
 
  (peg/match cg-capture-all "()")
  # => @["()"]
@@ -134,14 +134,14 @@
    # cg is a struct, need something mutable
    (table ;(kvs cg))
    # capture each top-level
-   (put :main '(any (capture :input)))
+   (put :main '(some (capture :input)))
    # tried using a table with a peg but had a problem, so use a struct
    table/to-struct))
 
 (comment
 
  (peg/match cg-capture-top-levels "")
-  # => @[]
+  # => nil
 
  (peg/match cg-capture-top-levels "()")
   # => @["()"]
