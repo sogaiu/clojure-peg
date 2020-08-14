@@ -125,6 +125,7 @@
                       :deref
                       :quote
                       :backtick
+                      :var-quote
                       :symbol))
     #
     :metadata-entry (sequence "^"
