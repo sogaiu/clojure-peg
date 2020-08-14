@@ -129,6 +129,7 @@
                       :symbol))
     #
     :metadata-entry (sequence "^"
+                              (any :non-form)
                               (choice :conditional
                                       :map
                                       :string
@@ -137,6 +138,7 @@
                                       :symbol))
     #
     :deprecated-metadata-entry (sequence "#^"
+                                         (any :non-form)
                                          (choice :conditional
                                                  :map
                                                  :string

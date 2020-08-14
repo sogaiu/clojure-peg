@@ -386,6 +386,17 @@
       (buffer/push-string buf "#'")
       (each elt (drop 1 ast)
             (code* elt buf)))
+    :metadata-entry
+    (do
+      (buffer/push-string buf "^")
+      (each elt (drop 1 ast)
+            (code* elt buf)))
+    :deprecated-metadata-entry
+    (do
+      (buffer/push-string buf "#^")
+      (each elt (drop 1 ast)
+            (code* elt buf)))
+    #
     :tag
     (do
       (buffer/push-string buf "#")
@@ -412,15 +423,6 @@
       (each elt (tuple/slice ast 1 -2)
             (code* elt buf))
       (code* (last ast) buf))
-    #
-    :metadata-entry
-    (each elt (drop 1 ast)
-          (buffer/push-string buf "^")
-          (code* elt buf))
-    :deprecated-metadata-entry
-    (each elt (drop 1 ast)
-          (buffer/push-string buf "#^")
-          (code* elt buf))
     #
     :regex
     (do
