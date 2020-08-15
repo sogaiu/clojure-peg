@@ -275,9 +275,9 @@
 
 (defn ast
   [src]
-  (array/insert
-    (peg/match cg-capture-ast src)
-    0 :code))
+  (if-let [parsed (peg/match cg-capture-ast src)]
+    (array/insert parsed 0 :code)
+    [:code]))
 
 (comment
 
@@ -289,6 +289,9 @@
       (:number "1") (:whitespace " ")
       (:number "1"))]
   ``
+
+  (ast "")
+  # => [:code]
 
   )
 

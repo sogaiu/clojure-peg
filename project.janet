@@ -1,4 +1,4 @@
-(import ./vendor/path)
+(import ./clojure-peg/vendor/path)
 
 (declare-project
  :name "clojure-peg"
