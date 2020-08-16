@@ -88,6 +88,7 @@
                            :literal))
     #
     :symbolic (sequence "##"
+                        (any :non-form)
                         :symbol)
     #
     :backtick (sequence "`"
@@ -299,6 +300,9 @@
   # => @[]
 
   (peg/match cg "##Inf")
+  # => @[]
+
+  (peg/match cg "## NaN")
   # => @[]
 
   (peg/match cg "#'a")

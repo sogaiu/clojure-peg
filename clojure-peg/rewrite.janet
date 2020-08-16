@@ -36,7 +36,7 @@
     (each kwd [:backtick :conditional :conditional-splicing
                :deprecated-metadata-entry :deref :discard
                :eval :metadata :metadata-entry :namespaced-map
-               :quote :tag :unquote :unquote-splicing :var-quote]
+               :quote :symbolic :tag :unquote :unquote-splicing :var-quote]
           (put ca kwd
                ~(cmt (capture ,(in ca kwd))
                      ,|[kwd ;(slice $& 0 -2)])))
@@ -48,10 +48,6 @@
                                ,|[kwd ;(slice $& 0 -2)])))))
     # finish up
     (-> ca
-        #
-        (put :symbolic
-             ~(cmt (capture ,(in ca :symbolic))
-                   ,|[:symbolic (get-in $& [0 1])]))
         #
         (put :auto-resolve
              ~(cmt (capture ,(in ca :auto-resolve))
@@ -157,7 +153,10 @@
   ``
 
   (peg/match cg-capture-ast "##Inf")
-  # => @[[:symbolic "Inf"]]
+  # => @[[:symbolic [:symbol "Inf"]]]
+
+  (peg/match cg-capture-ast "## NaN")
+  # => @[[:symbolic [:whitespace " "] [:symbol "NaN"]]]
 
   (peg/match cg-capture-ast "#'a")
   # => @[[:var-quote [:symbol "a"]]]
@@ -400,6 +399,11 @@
       (each elt (drop 1 ast)
             (code* elt buf)))
     #
+    :symbolic
+    (do
+      (buffer/push-string buf "##")
+      (each elt (drop 1 ast)
+            (code* elt buf)))
     :tag
     (do
       (buffer/push-string buf "#")
@@ -430,10 +434,6 @@
     :regex
     (do
       (buffer/push-string buf "#")
-      (buffer/push-string buf (in ast 1)))
-    :symbolic
-    (do
-      (buffer/push-string buf "##")
       (buffer/push-string buf (in ast 1)))
     #
     :auto-resolve
@@ -586,8 +586,14 @@
   (code [:code [:macro-keyword "::a"]])
   # => "::a"
 
-  (code [:code [:symbolic "Inf"]])
+  (code [:code [:symbolic [:symbol "Inf"]]])
   # => "##Inf"
+
+  (code [:code
+         [:symbolic
+          [:whitespace " "]
+          [:symbol "NaN"]]])
+  # => "## NaN"
 
   (code [:code
          [:conditional
