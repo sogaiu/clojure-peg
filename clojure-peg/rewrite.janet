@@ -244,9 +244,35 @@
       [:number "1"]]]]
   ``
 
+  (peg/match cg-capture-ast "#? (:clj 0 :cljr 1)")
+  ``
+  @[[:conditional
+     [:whitespace " "]
+     [:list
+      [:keyword ":clj"] [:whitespace " "]
+      [:number "0"] [:whitespace " "]
+      [:keyword ":cljr"] [:whitespace " "]
+      [:number "1"]]]]
+  ``
+
   (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [8 9])")
   ``
   @[[:conditional-splicing
+     [:list
+      [:keyword ":clj"] [:whitespace " "]
+      [:vector
+       [:number "0"] [:whitespace " "]
+       [:number "1"]] [:whitespace " "]
+      [:keyword ":cljr"] [:whitespace " "]
+      [:vector
+       [:number "8"] [:whitespace " "]
+       [:number "9"]]]]]
+  ``
+
+  (peg/match cg-capture-ast "#?@ (:clj [0 1] :cljr [8 9])")
+  ``
+  @[[:conditional-splicing
+     [:whitespace " "]
      [:list
       [:keyword ":clj"] [:whitespace " "]
       [:vector

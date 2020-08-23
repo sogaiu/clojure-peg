@@ -320,4 +320,16 @@
   (peg/match cg "^{:a true} [:a :b]")
   # => @[]
 
+  (peg/match cg "#?(:clj 1 :cljr 2)")
+  # => @[]
+
+  (peg/match cg "#? (:clj 1 :cljr 2)")
+  # => @[]
+
+  (peg/match cg "[#?@(:clj [:a] :cljr [:b])]")
+  # => @[]
+
+  (peg/match cg "[#?@ (:clj [:a] :cljr [:b])]")
+  # => @[]
+
   )
