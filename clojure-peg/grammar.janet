@@ -171,31 +171,47 @@
                      :symbol)
     #
     :number (sequence (opt (set "+-"))
-                      (some :digit)
-                      (opt (choice :ratio-suffix
-                                   :double-suffix
-                                   :long-suffix)))
+                      (choice :hex-number
+                              :octal-number
+                              :radix-number
+                              :ratio
+                              :double
+                              :integer))
+    #
+    :double (sequence (some :digit)
+                      (opt (sequence "."
+                                     (any :digit)))
+                      (opt (sequence (set "eE")
+                                     (opt (set "+-"))
+                                     (some :digit)))
+                      (opt "M"))
     #
     :digit (range "09")
     #
-    :ratio-suffix (sequence "/"
-                            (some :digit))
+    :integer (sequence (some :digit)
+                       (opt "M"))
     #
-    :double-suffix
-    (sequence (sequence (opt (sequence "."
-                                       (any :digit)))
-                        (opt (sequence (set "eE")
-                                       (opt (set "+-"))
-                                       (some :digit))))
-              (opt "M"))
+    :hex-number (sequence (some :digit)
+                          (set "xX")
+                          (some :hex)
+                          (opt "N"))
     #
-    :long-suffix
-    (sequence (opt (choice (sequence (set "xX")
-                                     (some (range "09" "af" "AF")))
-                           (sequence (set "rR")
-                                     (some (range "09" "az" "AZ")))
-                           (some (range "07"))))
-              (opt "N"))
+    :hex (range "09" "af" "AF")
+    #
+    :octal-number (sequence "0"
+                            (some :octal)
+                            (opt "N"))
+    #
+    :octal (range "07")
+    #
+    :radix-number (sequence (some :digit)
+                            (set "rR")
+                            (some (range "09" "az" "AZ"))
+                            (opt "N"))
+    #
+    :ratio (sequence (some :digit)
+                     "/"
+                     (some :digit))
     #
     :macro-keyword (sequence "::"
                              :keyword-head
@@ -270,6 +286,36 @@
   # => @[]
 
   (peg/match cg "1")
+  # => @[]
+
+  (peg/match cg "2.0")
+  # => @[]
+
+  (peg/match cg "6.022e23")
+  # => @[]
+
+  (peg/match cg "1e8")
+  # => @[]
+
+  (peg/match cg "1/2")
+  # => @[]
+
+  (peg/match cg "0x1")
+  # => @[]
+
+  (peg/match cg "01")
+  # => @[]
+
+  (peg/match cg "017")
+  # => @[]
+
+  (peg/match cg "0377")
+  # => @[]
+
+  (peg/match cg "2r01")
+  # => @[]
+
+  (peg/match cg "36rA")
   # => @[]
 
   (peg/match cg "()")

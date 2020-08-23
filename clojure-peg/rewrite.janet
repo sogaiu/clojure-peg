@@ -203,6 +203,36 @@
   (peg/match cg-capture-ast "1")
   # => @[[:number "1"]]
 
+  (peg/match cg-capture-ast "2.0")
+  # => @[[:number "2.0"]]
+
+  (peg/match cg-capture-ast "6.022e23")
+  # => @[[:number "6.022e23"]
+
+  (peg/match cg-capture-ast "1e8")
+  # => @[[:number "1e8"]]
+
+  (peg/match cg-capture-ast "1/2")
+  # => @[[:number "1/2"]]
+
+  (peg/match cg-capture-ast "0x1")
+  # => @[[:number "0x1"]]
+
+  (peg/match cg-capture-ast "01")
+  # => @[[:number "01"]]
+
+  (peg/match cg-capture-ast "017")
+  # => @[[:number "017"]]
+
+  (peg/match cg-capture-ast "0377")
+  # => @[[:number "0377"]]
+
+  (peg/match cg-capture-ast "2r01")
+  # => @[[:number "2r01"]]
+
+  (peg/match cg-capture-ast "36rA")
+  # => @[[:number "36rA"]]
+
   (peg/match cg-capture-ast "^{:a true} [:a]")
   ``
   @[[:metadata
