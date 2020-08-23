@@ -249,11 +249,7 @@
                         "space"
                         "tab")
     #
-    :unicode (sequence "u"
-                       (range "09" "af" "AF")
-                       (range "09" "af" "AF")
-                       (range "09" "af" "AF")
-                       (range "09" "af" "AF"))
+    :unicode (sequence "u" [4 :hex])
     # XXX: this just matches anything...may be not what we want
     :unicode-char 1
     #
