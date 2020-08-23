@@ -222,14 +222,10 @@
                                (sequence :keyword-head
                                          (any :keyword-body))))
     #
-    :keyword-head (choice :allowed-name-character
-                          (set "#'"))
+    :keyword-head (if-not (set "\f\n\r\t ()[]{}\"@~^;`\\,:/")
+                          1)
     #
-    :allowed-name-character
-    (if-not (set "\f\n\r\t ()[]{}\"@~^;`\\,:#'/")
-            1)
-    #
-    :keyword-body (choice (set ":/")
+    :keyword-body (choice (set ":'/")
                           :keyword-head)
     #
     :string (sequence "\""
@@ -261,14 +257,14 @@
     # XXX: this just matches anything...may be not what we want
     :unicode-char 1
     #
-    :symbol (sequence :name-head
-                      (any :name-body))
+    :symbol (sequence :symbol-head
+                      (any :symbol-body))
     #
-    :name-head (choice "/"
-                       :allowed-name-character)
+    :symbol-head (if-not (set "\f\n\r\t ()[]{}\"@~^;`\\,:#'0123456789")
+                         1)
     #
-    :name-body (choice :name-head
-                       (set ":#'"))
+    :symbol-body (choice :symbol-head
+                         (set ":#'0123456789"))
     })
 
 (comment
