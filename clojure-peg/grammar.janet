@@ -62,11 +62,11 @@
                               :map)
     #
     :conditional (sequence "#?"
-                           (any :non-form)
+                           (any :whitespace)
                            :list)
     #
     :conditional-splicing (sequence "#?@"
-                                    (any :non-form)
+                                    (any :whitespace)
                                     :list)
     #
     :auto-resolve "::"
