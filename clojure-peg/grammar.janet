@@ -239,6 +239,7 @@
     #
     :character (sequence "\\"
                          (choice :named-char
+                                 :octal-char
                                  :unicode
                                  :unicode-char))
     #
@@ -248,6 +249,11 @@
                         "return"
                         "space"
                         "tab")
+    # XXX: \o477 and others are not valid
+    :octal-char (sequence "o"
+                          (choice [1 :octal]
+                                  [2 :octal]
+                                  [3 :octal]))
     #
     :unicode (sequence "u" [4 :hex])
     # XXX: this just matches anything...may be not what we want
