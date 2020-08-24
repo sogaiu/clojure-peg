@@ -191,7 +191,7 @@
     :integer (sequence (some :digit)
                        (opt "M"))
     #
-    :hex-number (sequence (some :digit)
+    :hex-number (sequence "0"
                           (set "xX")
                           (some :hex)
                           (opt "N"))
