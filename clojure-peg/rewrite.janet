@@ -207,7 +207,7 @@
   # => @[[:number "2.0"]]
 
   (peg/match cg-capture-ast "6.022e23")
-  # => @[[:number "6.022e23"]
+  # => @[[:number "6.022e23"]]
 
   (peg/match cg-capture-ast "1e8")
   # => @[[:number "1e8"]]
