@@ -189,7 +189,7 @@
     :digit (range "09")
     #
     :integer (sequence (some :digit)
-                       (opt "M"))
+                       (opt (set "MN")))
     #
     :hex-number (sequence "0"
                           (set "xX")
@@ -206,8 +206,7 @@
     #
     :radix-number (sequence (some :digit)
                             (set "rR")
-                            (some (range "09" "az" "AZ"))
-                            (opt "N"))
+                            (some (range "09" "az" "AZ")))
     #
     :ratio (sequence (some :digit)
                      "/"
