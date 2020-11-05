@@ -48,7 +48,7 @@
     #
     :set (sequence "#{"
                    (any :input)
-                   (choice "}" (error "")))
+                   (choice "}" (error (constant "missing }"))))
     #
     :fn (sequence "#" :list)
     #
@@ -153,15 +153,15 @@
     #
     :list (sequence "("
                     (any :input)
-                    (choice ")" (error "")))
+                    (choice ")" (error (constant "missing )"))))
     #
     :vector (sequence "["
                       (any :input)
-                      (choice "]" (error "")))
+                      (choice "]" (error (constant "missing ]"))))
     #
     :map (sequence "{"
                     (any :input)
-                    (choice "}" (error "")))
+                    (choice "}" (error (constant "missing }"))))
     #
     :literal (choice :number
                      :macro-keyword
