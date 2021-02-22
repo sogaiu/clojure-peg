@@ -340,11 +340,11 @@
       [a-peg n-iter]
       (let [start (os/time)]
         (each i (range n-iter)
-              (let [src-str
-                    (string
-                      (slurp (string (os/getenv "HOME")
-                               "/src/clojure/src/clj/clojure/core.clj")))]
-                (peg/match a-peg src-str)))
+          (let [src-str
+                (string
+                  (slurp (string (os/getenv "HOME")
+                                 "/src/clojure/src/clj/clojure/core.clj")))]
+            (peg/match a-peg src-str)))
         (- (os/time) start)))
 
     # XXX: effectively turns off gc?
