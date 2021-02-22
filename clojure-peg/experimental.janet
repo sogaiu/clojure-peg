@@ -91,148 +91,183 @@
   (peg/match cg-capture-ast "{}")
   # => @[[:map 0]]
 
-  (peg/match cg-capture-ast "{:a 1}")
-  ``
-  @[[:map 0
-     [:keyword 1 ":a"]
-     [:whitespace 3 " "]
-     [:number 4 "1"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "{:a 1}")
+    #
+    @[[:map 0
+       [:keyword 1 ":a"]
+       [:whitespace 3 " "]
+       [:number 4 "1"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#::{}")
-  ``
-  @[[:namespaced-map 0
-     [:auto-resolve 1]
-     [:map 3]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#::{}")
+    #
+    @[[:namespaced-map 0
+       [:auto-resolve 1]
+       [:map 3]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#::a{}")
-  ``
-  @[[:namespaced-map 0
-     [:macro-keyword 1 "::a"]
-     [:map 4]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#::a{}")
+    #
+    @[[:namespaced-map 0
+       [:macro-keyword 1 "::a"]
+       [:map 4]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#:a{}")
-  ``
-  @[[:namespaced-map 0
-     [:keyword 1 ":a"]
-     [:map 3]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#:a{}")
+    #
+    @[[:namespaced-map 0
+       [:keyword 1 ":a"]
+       [:map 3]]]
+    ) # => true
 
   (peg/match cg-capture-ast "[]")
   # => @[[:vector 0]]
 
-  (peg/match cg-capture-ast "[:a]")
-  ``
-  @[[:vector 0
-     [:keyword 1 ":a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "[:a]")
+    #
+    @[[:vector 0
+       [:keyword 1 ":a"]]]
+    ) # => true
 
   (peg/match cg-capture-ast "()")
   # => @[[:list 0]]
 
-  (peg/match cg-capture-ast "(:a)")
-  ``
-  @[[:list 0
-     [:keyword 1 ":a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "(:a)")
+    #
+    @[[:list 0
+       [:keyword 1 ":a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "^{:a true} [:a]")
-  ``
-  @[[:metadata 0
-     [:metadata-entry 0
-      [:map 1
-       [:keyword 2 ":a"]
-       [:whitespace 4 " "]
-       [:symbol 5 "true"]]]
-     [:whitespace 10 " "]
-     [:vector 11
-      [:keyword 12 ":a"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "^{:a true} [:a]")
+    #
+    @[[:metadata 0
+       [:metadata-entry 0
+        [:map 1
+         [:keyword 2 ":a"]
+         [:whitespace 4 " "]
+         [:symbol 5 "true"]]]
+       [:whitespace 10 " "]
+       [:vector 11
+        [:keyword 12 ":a"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#^{:a true} [:a]")
-  ``
-  @[[:metadata 0
-     [:deprecated-metadata-entry 0
-      [:map 2
-       [:keyword 3 ":a"]
-       [:whitespace 5 " "]
-       [:symbol 6 "true"]]]
-     [:whitespace 11 " "]
-     [:vector 12
-      [:keyword 13 ":a"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#^{:a true} [:a]")
+    #
+    @[[:metadata 0
+       [:deprecated-metadata-entry 0
+        [:map 2
+         [:keyword 3 ":a"]
+         [:whitespace 5 " "]
+         [:symbol 6 "true"]]]
+       [:whitespace 11 " "]
+       [:vector 12
+        [:keyword 13 ":a"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "`a")
-  ``
-  @[[:backtick 0
-     [:symbol 1 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "`a")
+    #
+    @[[:backtick 0
+       [:symbol 1 "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "'a")
-  ``
-  @[[:quote 0
-     [:symbol 1 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "'a")
+    #
+    @[[:quote 0
+       [:symbol 1 "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "~a")
-  ``
-  @[[:unquote 0
-     [:symbol 1 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "~a")
+    #
+    @[[:unquote 0
+       [:symbol 1 "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "~@a")
-  ``
-  @[[:unquote-splicing 0
-     [:symbol 2 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "~@a")
+    #
+    @[[:unquote-splicing 0
+       [:symbol 2 "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "@a")
-  ``
-  @[[:deref 0
-     [:symbol 1 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "@a")
+    #
+    @[[:deref 0
+       [:symbol 1 "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#(inc %)")
-  ``
-  @[[:fn 0
-     [:list 1
-      [:symbol 2 "inc"]
-      [:whitespace 5 " "]
-      [:symbol 6 "%"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#(inc %)")
+    #
+    @[[:fn 0
+       [:list 1
+        [:symbol 2 "inc"]
+        [:whitespace 5 " "]
+        [:symbol 6 "%"]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "#\".\"")
   # => @[[:regex 0 "\".\""]]
 
-  (peg/match cg-capture-ast "#{:a}")
-  ``
-  @[[:set 0
-     [:keyword 2 ":a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#{:a}")
+    #
+    @[[:set 0
+       [:keyword 2 ":a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#'a")
-  ``
-  @[[:var-quote 0
-     [:symbol 2 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#'a")
+    #
+    @[[:var-quote 0
+       [:symbol 2 "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#_ a")
-  ``
-  @[[:discard 0
-     [:whitespace 2 " "]
-     [:symbol 3 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#_ a")
+    #
+    @[[:discard 0
+       [:whitespace 2 " "]
+       [:symbol 3 "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast
-    "#uuid \"00000000-0000-0000-0000-000000000000\"")
-  ``
-  @[[:tag 0
-     [:symbol 1 "uuid"]
-     [:whitespace 5 " "]
-     [:string 6 "\"00000000-0000-0000-0000-000000000000\""]]]
-  ``
+  (deep=
+    (peg/match cg-capture-ast
+               "#uuid \"00000000-0000-0000-0000-000000000000\"")
+    #
+    @[[:tag 0
+       [:symbol 1 "uuid"]
+       [:whitespace 5 " "]
+       [:string 6 "\"00000000-0000-0000-0000-000000000000\""]]]
+    ) # => true
 
   (peg/match cg-capture-ast " ")
   # => @[[:whitespace 0 " "]]
@@ -243,47 +278,53 @@
   (peg/match cg-capture-ast "#! foo")
   # => @[[:comment 0 "#! foo"]]
 
-  (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
-  ``
-  @[[:conditional 0
-     [:list 2
-      [:keyword 3 ":clj"]
-      [:whitespace 7 " "]
-      [:number 8 "0"]
-      [:whitespace 9 " "]
-      [:keyword 10 ":cljr"]
-      [:whitespace 15 " "]
-      [:number 16 "1"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
+    #
+    @[[:conditional 0
+       [:list 2
+        [:keyword 3 ":clj"]
+        [:whitespace 7 " "]
+        [:number 8 "0"]
+        [:whitespace 9 " "]
+        [:keyword 10 ":cljr"]
+        [:whitespace 15 " "]
+        [:number 16 "1"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast
-             "#?@(:clj [0 1] :cljr [1 2])")
-  ``
-  @[[:conditional-splicing 0
-     [:list 3
-      [:keyword 4 ":clj"]
-      [:whitespace 8 " "]
-      [:vector 9
-       [:number 10 "0"]
-       [:whitespace 11 " "]
-       [:number 12 "1"]]
-      [:whitespace 14 " "]
-      [:keyword 15 ":cljr"]
-      [:whitespace 20 " "]
-      [:vector 21
-       [:number 22 "1"]
-       [:whitespace 23 " "]
-       [:number 24 "2"]]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast
+               "#?@(:clj [0 1] :cljr [1 2])")
+    #
+    @[[:conditional-splicing 0
+       [:list 3
+        [:keyword 4 ":clj"]
+        [:whitespace 8 " "]
+        [:vector 9
+         [:number 10 "0"]
+         [:whitespace 11 " "]
+         [:number 12 "1"]]
+        [:whitespace 14 " "]
+        [:keyword 15 ":cljr"]
+        [:whitespace 20 " "]
+        [:vector 21
+         [:number 22 "1"]
+         [:whitespace 23 " "]
+         [:number 24 "2"]]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "##NaN")
   # => @[[:symbolic 0 "NaN"]]
 
-  (peg/match cg-capture-ast "#=a")
-  ``
-  @[[:eval 0
-     [:symbol 2 "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#=a")
+    #
+    @[[:eval 0
+       [:symbol 2 "a"]]]
+    ) # => true
 
   )
 

@@ -12,35 +12,39 @@
 
 (comment
 
- (peg/match cg-one "\"\\u0030\"")
- # => @[]
+  (peg/match cg-one "\"\\u0030\"")
+  # => @[]
 
- (peg/match cg-one "(def a 1)")
- # => @[]
+  (peg/match cg-one "(def a 1)")
+  # => @[]
 
- (peg/match cg-one "[:a :b)")
- # ! "match error in range (6:6)"
+  (try
+    (peg/match cg-one "[:a :b)")
+    ([e] e))
+  # => "missing ]"
 
- (peg/match cg-one "(def a ; hi\n 1)")
- # => @[]
+  (peg/match cg-one "(def a ; hi\n 1)")
+  # => @[]
 
- (peg/match cg-one "(def a ; hi 1)")
- # ! "match error in range (14:14)"
+  (try
+    (peg/match cg-one "(def a ; hi 1)")
+    ([e] e))
+  # => "missing )"
 
- (peg/match cg-one "[1]")
- # => @[]
+  (peg/match cg-one "[1]")
+  # => @[]
 
- (peg/match cg-one "; hello")
- # => @[]
+  (peg/match cg-one "; hello")
+  # => @[]
 
- (peg/match cg-one "8")
- # => @[]
+  (peg/match cg-one "8")
+  # => @[]
 
- (peg/match cg-one "[:a :b]")
- # => @[]
+  (peg/match cg-one "[:a :b]")
+  # => @[]
 
- (peg/match cg-one "[:a :b] 1")
- # => @[]
+  (peg/match cg-one "[:a :b] 1")
+  # => @[]
 
  )
 

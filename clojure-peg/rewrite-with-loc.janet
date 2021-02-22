@@ -107,149 +107,185 @@
   (peg/match cg-capture-ast "{}")
   # => @[[:map {:start 0 :end 2}]]
 
-  (peg/match cg-capture-ast "{:a 1}")
-  ``
-  @[[:map {:start 0 :end 6}
-     [:keyword {:start 1 :end 3} ":a"]
-     [:whitespace {:start 3 :end 4} " "]
-     [:number {:start 4 :end 5} "1"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "{:a 1}")
+    #
+    @[[:map {:start 0 :end 6}
+       [:keyword {:start 1 :end 3} ":a"]
+       [:whitespace {:start 3 :end 4} " "]
+       [:number {:start 4 :end 5} "1"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#::{}")
-  ``
-  @[[:namespaced-map {:start 0 :end 5}
-     [:auto-resolve {:start 1 :end 3}]
-     [:map {:start 3 :end 5}]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#::{}")
+    #
+    @[[:namespaced-map {:start 0 :end 5}
+       [:auto-resolve {:start 1 :end 3}]
+       [:map {:start 3 :end 5}]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#::a{}")
-  ``
-  @[[:namespaced-map {:start 0 :end 6}
-     [:macro-keyword {:start 1 :end 4} "::a"]
-     [:map {:start 4 :end 6}]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#::a{}")
+    #
+    @[[:namespaced-map {:start 0 :end 6}
+       [:macro-keyword {:start 1 :end 4} "::a"]
+       [:map {:start 4 :end 6}]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#:a{}")
-  ``
-  @[[:namespaced-map {:start 0 :end 5}
-     [:keyword {:start 1 :end 3} ":a"]
-     [:map {:start 3 :end 5}]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#:a{}")
+    #
+    @[[:namespaced-map {:start 0 :end 5}
+       [:keyword {:start 1 :end 3} ":a"]
+       [:map {:start 3 :end 5}]]]
+    ) # => true
 
   (peg/match cg-capture-ast "[]")
   # => @[[:vector {:start 0 :end 2}]]
 
-  (peg/match cg-capture-ast "[:a]")
-  ``
-  @[[:vector {:start 0 :end 4}
-     [:keyword {:start 1 :end 3} ":a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "[:a]")
+    #
+    @[[:vector {:start 0 :end 4}
+       [:keyword {:start 1 :end 3} ":a"]]]
+    ) # => true
 
   (peg/match cg-capture-ast "()")
   # => @[[:list {:start 0 :end 2}]]
 
-  (peg/match cg-capture-ast "(:a)")
-  ``
-  @[[:list {:start 0 :end 4}
-     [:keyword {:start 1 :end 3} ":a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "(:a)")
+    #
+    @[[:list {:start 0 :end 4}
+       [:keyword {:start 1 :end 3} ":a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "^{:a true} [:a]")
-  ``
-  @[[:metadata {:start 0 :end 15}
-     [:metadata-entry {:start 0 :end 10}
-      [:map {:start 1 :end 10}
-       [:keyword {:start 2 :end 4} ":a"]
-       [:whitespace {:start 4 :end 5} " "]
-       [:symbol {:start 5 :end 9} "true"]]]
-     [:whitespace {:start 10 :end 11} " "]
-     [:vector {:start 11 :end 15}
-      [:keyword {:start 12 :end 14} ":a"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "^{:a true} [:a]")
+    #
+    @[[:metadata {:start 0 :end 15}
+       [:metadata-entry {:start 0 :end 10}
+        [:map {:start 1 :end 10}
+         [:keyword {:start 2 :end 4} ":a"]
+         [:whitespace {:start 4 :end 5} " "]
+         [:symbol {:start 5 :end 9} "true"]]]
+       [:whitespace {:start 10 :end 11} " "]
+       [:vector {:start 11 :end 15}
+        [:keyword {:start 12 :end 14} ":a"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#^{:a true} [:a]")
-  ``
-  @[[:metadata {:start 0 :end 16}
-     [:deprecated-metadata-entry {:start 0 :end 11}
-      [:map {:start 2 :end 11}
-       [:keyword {:start 3 :end 5} ":a"]
-       [:whitespace {:start 5 :end 6} " "]
-       [:symbol {:start 6 :end 10} "true"]]]
-     [:whitespace {:start 11 :end 12} " "]
-     [:vector {:start 12 :end 16}
-      [:keyword {:start 13 :end 15} ":a"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#^{:a true} [:a]")
+    #
+    @[[:metadata {:start 0 :end 16}
+       [:deprecated-metadata-entry {:start 0 :end 11}
+        [:map {:start 2 :end 11}
+         [:keyword {:start 3 :end 5} ":a"]
+         [:whitespace {:start 5 :end 6} " "]
+         [:symbol {:start 6 :end 10} "true"]]]
+       [:whitespace {:start 11 :end 12} " "]
+       [:vector {:start 12 :end 16}
+        [:keyword {:start 13 :end 15} ":a"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "`a")
-  ``
-  @[[:backtick {:start 0 :end 2}
-     [:symbol {:start 1 :end 2} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "`a")
+    #
+    @[[:backtick {:start 0 :end 2}
+       [:symbol {:start 1 :end 2} "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "'a")
-  ``
-  @[[:quote {:start 0 :end 2}
-     [:symbol {:start 1 :end 2} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "'a")
+    #
+    @[[:quote {:start 0 :end 2}
+       [:symbol {:start 1 :end 2} "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "~a")
-  ``
-  @[[:unquote {:start 0 :end 2}
-     [:symbol {:start 1 :end 2} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "~a")
+    #
+    @[[:unquote {:start 0 :end 2}
+       [:symbol {:start 1 :end 2} "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "~@a")
-  ``
-  @[[:unquote-splicing {:start 0 :end 3}
-     [:symbol {:start 2 :end 3} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "~@a")
+    #
+    @[[:unquote-splicing {:start 0 :end 3}
+       [:symbol {:start 2 :end 3} "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "@a")
-  ``
-  @[[:deref {:start 0 :end 2}
-     [:symbol {:start 1 :end 2} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "@a")
+    #
+    @[[:deref {:start 0 :end 2}
+       [:symbol {:start 1 :end 2} "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#(inc %)")
-  ``
-  @[[:fn {:start 0 :end 8}
-     [:list {:start 1 :end 8}
-      [:symbol {:start 2 :end 5} "inc"]
-      [:whitespace {:start 5 :end 6} " "]
-      [:symbol {:start 6 :end 7} "%"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#(inc %)")
+    #
+    @[[:fn {:start 0 :end 8}
+       [:list {:start 1 :end 8}
+        [:symbol {:start 2 :end 5} "inc"]
+        [:whitespace {:start 5 :end 6} " "]
+        [:symbol {:start 6 :end 7} "%"]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "#\".\"")
   # => @[[:regex {:start 0 :end 4} "\".\""]]
 
-  (peg/match cg-capture-ast "#{:a}")
-  ``
-  @[[:set {:start 0 :end 5}
-     [:keyword {:start 2 :end 4} ":a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#{:a}")
+    #
+    @[[:set {:start 0 :end 5}
+       [:keyword {:start 2 :end 4} ":a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#'a")
-  ``
-  @[[:var-quote {:start 0 :end 3}
-     [:symbol {:start 2 :end 3} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#'a")
+    #
+    @[[:var-quote {:start 0 :end 3}
+       [:symbol {:start 2 :end 3} "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#_ a")
-  ``
-  @[[:discard {:start 0 :end 4}
-     [:whitespace {:start 2 :end 3} " "]
-     [:symbol {:start 3 :end 4} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#_ a")
+    #
+    @[[:discard {:start 0 :end 4}
+       [:whitespace {:start 2 :end 3} " "]
+       [:symbol {:start 3 :end 4} "a"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast
-    "#uuid \"00000000-0000-0000-0000-000000000000\"")
-  ``
-  @[[:tag {:start 0 :end 44}
-     [:symbol {:start 1 :end 5} "uuid"]
-     [:whitespace {:start 5 :end 6} " "]
-     [:string {:start 6 :end 44}
-      "\"00000000-0000-0000-0000-000000000000\""]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast
+               "#uuid \"00000000-0000-0000-0000-000000000000\"")
+    #
+    @[[:tag {:start 0 :end 44}
+       [:symbol {:start 1 :end 5} "uuid"]
+       [:whitespace {:start 5 :end 6} " "]
+       [:string {:start 6 :end 44}
+        "\"00000000-0000-0000-0000-000000000000\""]]]
+    ) # => true
 
   (peg/match cg-capture-ast " ")
   # => @[[:whitespace {:start 0 :end 1} " "]]
@@ -260,46 +296,52 @@
   (peg/match cg-capture-ast "#! foo")
   # => @[[:comment {:start 0 :end 6} "#! foo"]]
 
-  (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
-  ``
-  @[[:conditional {:start 0 :end 18}
-     [:list {:start 2 :end 18}
-      [:keyword {:start 3 :end 7} ":clj"]
-      [:whitespace {:start 7 :end 8} " "]
-      [:number {:start 8 :end 9} "0"]
-      [:whitespace {:start 9 :end 10} " "]
-      [:keyword {:start 10 :end 15} ":cljr"]
-      [:whitespace {:start 15 :end 16} " "]
-      [:number {:start 16 :end 17} "1"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
+    #
+    @[[:conditional {:start 0 :end 18}
+       [:list {:start 2 :end 18}
+        [:keyword {:start 3 :end 7} ":clj"]
+        [:whitespace {:start 7 :end 8} " "]
+        [:number {:start 8 :end 9} "0"]
+        [:whitespace {:start 9 :end 10} " "]
+        [:keyword {:start 10 :end 15} ":cljr"]
+        [:whitespace {:start 15 :end 16} " "]
+        [:number {:start 16 :end 17} "1"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [1 2])")
-  ``
-  @[[:conditional-splicing {:start 0 :end 27}
-     [:list {:start 3 :end 27}
-      [:keyword {:start 4 :end 8} ":clj"]
-      [:whitespace {:start 8 :end 9} " "]
-      [:vector {:start 9 :end 14}
-       [:number {:start 10 :end 11} "0"]
-       [:whitespace {:start 11 :end 12} " "]
-       [:number {:start 12 :end 13} "1"]]
-      [:whitespace {:start 14 :end 15} " "]
-      [:keyword {:start 15 :end 20} ":cljr"]
-      [:whitespace {:start 20 :end 21} " "]
-      [:vector {:start 21 :end 26}
-       [:number {:start 22 :end 23} "1"]
-       [:whitespace {:start 23 :end 24} " "]
-       [:number {:start 24 :end 25} "2"]]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [1 2])")
+    #
+    @[[:conditional-splicing {:start 0 :end 27}
+       [:list {:start 3 :end 27}
+        [:keyword {:start 4 :end 8} ":clj"]
+        [:whitespace {:start 8 :end 9} " "]
+        [:vector {:start 9 :end 14}
+         [:number {:start 10 :end 11} "0"]
+         [:whitespace {:start 11 :end 12} " "]
+         [:number {:start 12 :end 13} "1"]]
+        [:whitespace {:start 14 :end 15} " "]
+        [:keyword {:start 15 :end 20} ":cljr"]
+        [:whitespace {:start 20 :end 21} " "]
+        [:vector {:start 21 :end 26}
+         [:number {:start 22 :end 23} "1"]
+         [:whitespace {:start 23 :end 24} " "]
+         [:number {:start 24 :end 25} "2"]]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "##NaN")
   # => @[[:symbolic {:start 0 :end 5} "NaN"]]
 
-  (peg/match cg-capture-ast "#=a")
-  ``
-  @[[:eval {:start 0 :end 3}
-     [:symbol {:start 2 :end 3} "a"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#=a")
+    #
+    @[[:eval {:start 0 :end 3}
+       [:symbol {:start 2 :end 3} "a"]]]
+    ) # => true
 
   )
 
@@ -311,16 +353,18 @@
 
 (comment
 
-  (ast "(+ 1 1)")
-  ``
-  '@[:code
-     (:list {:start 0 :end 7}
-            (:symbol {:start 1 :end 2} "+")
-            (:whitespace {:start 2 :end 3} " ")
-            (:number {:start 3 :end 4} "1")
-            (:whitespace {:start 4 :end 5} " ")
-            (:number {:start 5 :end 6} "1"))]
-  ``
+  (deep=
+    #
+    (ast "(+ 1 1)")
+    #
+    '@[:code
+       (:list {:start 0 :end 7}
+              (:symbol {:start 1 :end 2} "+")
+              (:whitespace {:start 2 :end 3} " ")
+              (:number {:start 3 :end 4} "1")
+              (:whitespace {:start 4 :end 5} " ")
+              (:number {:start 5 :end 6} "1"))]
+    ) # => true
 
   )
 

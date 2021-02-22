@@ -81,38 +81,46 @@
   (peg/match cg-capture-ast ":a")
   # => @[[:keyword ":a"]]
 
-  (peg/match cg-capture-ast "(:a :b :c)")
-  ``
-  @[[:list
-     [:keyword ":a"] [:whitespace " "]
-     [:keyword ":b"] [:whitespace " "]
-     [:keyword ":c"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "(:a :b :c)")
+    #
+    @[[:list
+       [:keyword ":a"] [:whitespace " "]
+       [:keyword ":b"] [:whitespace " "]
+       [:keyword ":c"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "[:a :b :c]")
-  ``
-  @[[:vector
-     [:keyword ":a"] [:whitespace " "]
-     [:keyword ":b"] [:whitespace " "]
-     [:keyword ":c"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "[:a :b :c]")
+    #
+    @[[:vector
+       [:keyword ":a"] [:whitespace " "]
+       [:keyword ":b"] [:whitespace " "]
+       [:keyword ":c"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "{:a 1 :b 2}")
-  ``
-  @[[:map
-     [:keyword ":a"] [:whitespace " "]
-     [:number "1"] [:whitespace " "]
-     [:keyword ":b"] [:whitespace " "]
-     [:number "2"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "{:a 1 :b 2}")
+    #
+    @[[:map
+       [:keyword ":a"] [:whitespace " "]
+       [:number "1"] [:whitespace " "]
+       [:keyword ":b"] [:whitespace " "]
+       [:number "2"]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#{:a :b :c}")
-  ``
-  @[[:set
-     [:keyword ":a"] [:whitespace " "]
-     [:keyword ":b"] [:whitespace " "]
-     [:keyword ":c"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#{:a :b :c}")
+    #
+    @[[:set
+       [:keyword ":a"] [:whitespace " "]
+       [:keyword ":b"] [:whitespace " "]
+       [:keyword ":c"]]]
+    ) # => true
 
   (peg/match cg-capture-ast "\"a\"")
   # => @[[:string "\"a\""]]
@@ -120,13 +128,15 @@
   (peg/match cg-capture-ast "#\".\"")
   # => @[[:regex "\".\""]]
 
-  (peg/match cg-capture-ast "#(inc %)")
-  ``
-  @[[:fn
-     [:list
-      [:symbol "inc"] [:whitespace " "]
-      [:symbol "%"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#(inc %)")
+    #
+    @[[:fn
+       [:list
+        [:symbol "inc"] [:whitespace " "]
+        [:symbol "%"]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "#::a{}")
   # => @[[:namespaced-map [:macro-keyword "::a"] [:map]]]
@@ -143,14 +153,16 @@
   (peg/match cg-capture-ast "#= a")
   # => @[[:eval [:whitespace " "] [:symbol "a"]]]
 
-  (peg/match cg-capture-ast "#=(+ a b)")
-  ``
-  @[[:eval
-     [:list
-      [:symbol "+"] [:whitespace " "]
-      [:symbol "a"] [:whitespace " "]
-      [:symbol "b"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#=(+ a b)")
+    #
+    @[[:eval
+       [:list
+        [:symbol "+"] [:whitespace " "]
+        [:symbol "a"] [:whitespace " "]
+        [:symbol "b"]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "##Inf")
   # => @[[:symbolic [:symbol "Inf"]]]
@@ -182,23 +194,27 @@
   (peg/match cg-capture-ast "~a")
   # => @[[:unquote [:symbol "a"]]]
 
-  (peg/match cg-capture-ast "~(:a :b :c)")
-  ``
-  @[[:unquote
-     [:list
-      [:keyword ":a"] [:whitespace " "]
-      [:keyword ":b"] [:whitespace " "]
-      [:keyword ":c"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "~(:a :b :c)")
+    #
+    @[[:unquote
+       [:list
+        [:keyword ":a"] [:whitespace " "]
+        [:keyword ":b"] [:whitespace " "]
+        [:keyword ":c"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "~@(:a :b :c)")
-  ``
-  @[[:unquote-splicing
-     [:list
-      [:keyword ":a"] [:whitespace " "]
-      [:keyword ":b"] [:whitespace " "]
-      [:keyword ":c"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "~@(:a :b :c)")
+    #
+    @[[:unquote-splicing
+       [:list
+        [:keyword ":a"] [:whitespace " "]
+        [:keyword ":b"] [:whitespace " "]
+        [:keyword ":c"]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "1")
   # => @[[:number "1"]]
@@ -233,98 +249,115 @@
   (peg/match cg-capture-ast "36rA")
   # => @[[:number "36rA"]]
 
-  (peg/match cg-capture-ast "^{:a true} [:a]")
-  ``
-  @[[:metadata
-     [:metadata-entry
-      [:map
-       [:keyword ":a"] [:whitespace " "]
-       [:symbol "true"]]]
-     [:whitespace " "]
-     [:vector
-      [:keyword ":a"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "^{:a true} [:a]")
+    #
+    @[[:metadata
+       [:metadata-entry
+        [:map
+         [:keyword ":a"] [:whitespace " "]
+         [:symbol "true"]]]
+       [:whitespace " "]
+       [:vector
+        [:keyword ":a"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#^{:a true} [:a]")
-  ``
-  @[[:metadata
-     [:deprecated-metadata-entry
-      [:map
-       [:keyword ":a"] [:whitespace " "]
-       [:symbol "true"]]]
-     [:whitespace " "]
-     [:vector
-      [:keyword ":a"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#^{:a true} [:a]")
+    #
+    @[[:metadata
+       [:deprecated-metadata-entry
+        [:map
+         [:keyword ":a"] [:whitespace " "]
+         [:symbol "true"]]]
+       [:whitespace " "]
+       [:vector
+        [:keyword ":a"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#uuid \"00000000-0000-0000-0000-000000000000\"")
-  ``
-  @[[:tag
-     [:symbol "uuid"] [:whitespace " "]
-     [:string "\"00000000-0000-0000-0000-000000000000\""]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#uuid \"00000000-0000-0000-0000-000000000000\"")
+    #
+    @[[:tag
+       [:symbol "uuid"] [:whitespace " "]
+       [:string "\"00000000-0000-0000-0000-000000000000\""]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
-  ``
-  @[[:conditional
-     [:list
-      [:keyword ":clj"] [:whitespace " "]
-      [:number "0"] [:whitespace " "]
-      [:keyword ":cljr"] [:whitespace " "]
-      [:number "1"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
+    #
+    @[[:conditional
+       [:list
+        [:keyword ":clj"] [:whitespace " "]
+        [:number "0"] [:whitespace " "]
+        [:keyword ":cljr"] [:whitespace " "]
+        [:number "1"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#? (:clj 0 :cljr 1)")
-  ``
-  @[[:conditional
-     [:whitespace " "]
-     [:list
-      [:keyword ":clj"] [:whitespace " "]
-      [:number "0"] [:whitespace " "]
-      [:keyword ":cljr"] [:whitespace " "]
-      [:number "1"]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#? (:clj 0 :cljr 1)")
+    #
+    @[[:conditional
+       [:whitespace " "]
+       [:list
+        [:keyword ":clj"] [:whitespace " "]
+        [:number "0"] [:whitespace " "]
+        [:keyword ":cljr"] [:whitespace " "]
+        [:number "1"]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [8 9])")
-  ``
-  @[[:conditional-splicing
-     [:list
-      [:keyword ":clj"] [:whitespace " "]
-      [:vector
-       [:number "0"] [:whitespace " "]
-       [:number "1"]] [:whitespace " "]
-      [:keyword ":cljr"] [:whitespace " "]
-      [:vector
-       [:number "8"] [:whitespace " "]
-       [:number "9"]]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [8 9])")
+    #
+    @[[:conditional-splicing
+       [:list
+        [:keyword ":clj"] [:whitespace " "]
+        [:vector
+         [:number "0"] [:whitespace " "]
+         [:number "1"]] [:whitespace " "]
+        [:keyword ":cljr"] [:whitespace " "]
+        [:vector
+         [:number "8"] [:whitespace " "]
+         [:number "9"]]]]]
+    ) # => true
 
-  (peg/match cg-capture-ast "#?@ (:clj [0 1] :cljr [8 9])")
-  ``
-  @[[:conditional-splicing
-     [:whitespace " "]
-     [:list
-      [:keyword ":clj"] [:whitespace " "]
-      [:vector
-       [:number "0"] [:whitespace " "]
-       [:number "1"]] [:whitespace " "]
-      [:keyword ":cljr"] [:whitespace " "]
-      [:vector
-       [:number "8"] [:whitespace " "]
-       [:number "9"]]]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#?@ (:clj [0 1] :cljr [8 9])")
+    #
+    @[[:conditional-splicing
+       [:whitespace " "]
+       [:list
+        [:keyword ":clj"] [:whitespace " "]
+        [:vector
+         [:number "0"] [:whitespace " "]
+         [:number "1"]] [:whitespace " "]
+        [:keyword ":cljr"] [:whitespace " "]
+        [:vector
+         [:number "8"] [:whitespace " "]
+         [:number "9"]]]]]
+    ) # => true
 
   (peg/match cg-capture-ast "#_ a")
   # => @[[:discard [:whitespace " "] [:symbol "a"]]]
 
-  (peg/match cg-capture-ast "#_ #_ :a :b")
-  `` @[[:discard
-        [:whitespace " "]
-        [:discard
-         [:whitespace " "] [:keyword ":a"]]
-        [:whitespace " "]
-        [:keyword ":b"]]]
-  ``
+  (deep=
+    #
+    (peg/match cg-capture-ast "#_ #_ :a :b")
+    #
+    @[[:discard
+       [:whitespace " "]
+       [:discard
+        [:whitespace " "] [:keyword ":a"]]
+       [:whitespace " "]
+       [:keyword ":b"]]]
+    ) # => true
 
   )
 
@@ -336,14 +369,16 @@
 
 (comment
 
-  (ast "(+ 1 1)")
-  ``
-  '@[:code
-     (:list
-      (:symbol "+") (:whitespace " ")
-      (:number "1") (:whitespace " ")
-      (:number "1"))]
-  ``
+  (deep=
+    #
+    (ast "(+ 1 1)")
+    #
+    '@[:code
+       (:list
+         (:symbol "+") (:whitespace " ")
+         (:number "1") (:whitespace " ")
+         (:number "1"))]
+    ) # => true
 
   (ast "")
   # => [:code]
