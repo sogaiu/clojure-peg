@@ -70,16 +70,20 @@
 (comment
 
   (peg/match cg-capture-ast " ")
-  # => @[[:whitespace " "]]
+  # =>
+  @[[:whitespace " "]]
 
   (peg/match cg-capture-ast "; hello")
-  # => @[[:comment "; hello"]]
+  # =>
+  @[[:comment "; hello"]]
 
   (peg/match cg-capture-ast "a")
-  # => @[[:symbol "a"]]
+  # =>
+  @[[:symbol "a"]]
 
   (peg/match cg-capture-ast ":a")
-  # => @[[:keyword ":a"]]
+  # =>
+  @[[:keyword ":a"]]
 
   (deep=
     #
@@ -88,8 +92,9 @@
     @[[:list
        [:keyword ":a"] [:whitespace " "]
        [:keyword ":b"] [:whitespace " "]
-       [:keyword ":c"]]]
-    ) # => true
+       [:keyword ":c"]]])
+  # =>
+  true
 
   (deep=
     #
@@ -98,8 +103,9 @@
     @[[:vector
        [:keyword ":a"] [:whitespace " "]
        [:keyword ":b"] [:whitespace " "]
-       [:keyword ":c"]]]
-    ) # => true
+       [:keyword ":c"]]])
+  # =>
+  true
 
   (deep=
     #
@@ -109,8 +115,9 @@
        [:keyword ":a"] [:whitespace " "]
        [:number "1"] [:whitespace " "]
        [:keyword ":b"] [:whitespace " "]
-       [:number "2"]]]
-    ) # => true
+       [:number "2"]]])
+  # =>
+  true
 
   (deep=
     #
@@ -119,14 +126,17 @@
     @[[:set
        [:keyword ":a"] [:whitespace " "]
        [:keyword ":b"] [:whitespace " "]
-       [:keyword ":c"]]]
-    ) # => true
+       [:keyword ":c"]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "\"a\"")
-  # => @[[:string "\"a\""]]
+  # =>
+  @[[:string "\"a\""]]
 
   (peg/match cg-capture-ast "#\".\"")
-  # => @[[:regex "\".\""]]
+  # =>
+  @[[:regex "\".\""]]
 
   (deep=
     #
@@ -135,23 +145,29 @@
     @[[:fn
        [:list
         [:symbol "inc"] [:whitespace " "]
-        [:symbol "%"]]]]
-    ) # => true
+        [:symbol "%"]]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "#::a{}")
-  # => @[[:namespaced-map [:macro-keyword "::a"] [:map]]]
+  # =>
+  @[[:namespaced-map [:macro-keyword "::a"] [:map]]]
 
   (peg/match cg-capture-ast "#::{}")
-  # => @[[:namespaced-map [:auto-resolve] [:map]]]
+  # =>
+  @[[:namespaced-map [:auto-resolve] [:map]]]
 
   (peg/match cg-capture-ast "#:a{}")
-  # => @[[:namespaced-map [:keyword ":a"] [:map]]]
+  # =>
+  @[[:namespaced-map [:keyword ":a"] [:map]]]
 
   (peg/match cg-capture-ast "#=a")
-  # => @[[:eval [:symbol "a"]]]
+  # =>
+  @[[:eval [:symbol "a"]]]
 
   (peg/match cg-capture-ast "#= a")
-  # => @[[:eval [:whitespace " "] [:symbol "a"]]]
+  # =>
+  @[[:eval [:whitespace " "] [:symbol "a"]]]
 
   (deep=
     #
@@ -161,38 +177,49 @@
        [:list
         [:symbol "+"] [:whitespace " "]
         [:symbol "a"] [:whitespace " "]
-        [:symbol "b"]]]]
-    ) # => true
+        [:symbol "b"]]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "##Inf")
-  # => @[[:symbolic [:symbol "Inf"]]]
+  # =>
+  @[[:symbolic [:symbol "Inf"]]]
 
   (peg/match cg-capture-ast "## NaN")
-  # => @[[:symbolic [:whitespace " "] [:symbol "NaN"]]]
+  # =>
+  @[[:symbolic [:whitespace " "] [:symbol "NaN"]]]
 
   (peg/match cg-capture-ast "#'a")
-  # => @[[:var-quote [:symbol "a"]]]
+  # =>
+  @[[:var-quote [:symbol "a"]]]
 
   (peg/match cg-capture-ast "\\newline")
-  # => @[[:character "\\newline"]]
+  # =>
+  @[[:character "\\newline"]]
 
   (peg/match cg-capture-ast "\\ua08e")
-  # => @[[:character "\\ua08e"]]
+  # =>
+  @[[:character "\\ua08e"]]
 
   (peg/match cg-capture-ast "\\a")
-  # => @[[:character "\\a"]]
+  # =>
+  @[[:character "\\a"]]
 
   (peg/match cg-capture-ast "@a")
-  # => @[[:deref [:symbol "a"]]]
+  # =>
+  @[[:deref [:symbol "a"]]]
 
   (peg/match cg-capture-ast "'a")
-  # => @[[:quote [:symbol "a"]]]
+  # =>
+  @[[:quote [:symbol "a"]]]
 
   (peg/match cg-capture-ast "`a")
-  # => @[[:backtick [:symbol "a"]]]
+  # =>
+  @[[:backtick [:symbol "a"]]]
 
   (peg/match cg-capture-ast "~a")
-  # => @[[:unquote [:symbol "a"]]]
+  # =>
+  @[[:unquote [:symbol "a"]]]
 
   (deep=
     #
@@ -202,8 +229,9 @@
        [:list
         [:keyword ":a"] [:whitespace " "]
         [:keyword ":b"] [:whitespace " "]
-        [:keyword ":c"]]]]
-    ) # => true
+        [:keyword ":c"]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -213,41 +241,53 @@
        [:list
         [:keyword ":a"] [:whitespace " "]
         [:keyword ":b"] [:whitespace " "]
-        [:keyword ":c"]]]]
-    ) # => true
+        [:keyword ":c"]]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "1")
-  # => @[[:number "1"]]
+  # =>
+  @[[:number "1"]]
 
   (peg/match cg-capture-ast "2.0")
-  # => @[[:number "2.0"]]
+  # =>
+  @[[:number "2.0"]]
 
   (peg/match cg-capture-ast "6.022e23")
-  # => @[[:number "6.022e23"]]
+  # =>
+  @[[:number "6.022e23"]]
 
   (peg/match cg-capture-ast "1e8")
-  # => @[[:number "1e8"]]
+  # =>
+  @[[:number "1e8"]]
 
   (peg/match cg-capture-ast "1/2")
-  # => @[[:number "1/2"]]
+  # =>
+  @[[:number "1/2"]]
 
   (peg/match cg-capture-ast "0x1")
-  # => @[[:number "0x1"]]
+  # =>
+  @[[:number "0x1"]]
 
   (peg/match cg-capture-ast "01")
-  # => @[[:number "01"]]
+  # =>
+  @[[:number "01"]]
 
   (peg/match cg-capture-ast "017")
-  # => @[[:number "017"]]
+  # =>
+  @[[:number "017"]]
 
   (peg/match cg-capture-ast "0377")
-  # => @[[:number "0377"]]
+  # =>
+  @[[:number "0377"]]
 
   (peg/match cg-capture-ast "2r01")
-  # => @[[:number "2r01"]]
+  # =>
+  @[[:number "2r01"]]
 
   (peg/match cg-capture-ast "36rA")
-  # => @[[:number "36rA"]]
+  # =>
+  @[[:number "36rA"]]
 
   (deep=
     #
@@ -260,8 +300,9 @@
          [:symbol "true"]]]
        [:whitespace " "]
        [:vector
-        [:keyword ":a"]]]]
-    ) # => true
+        [:keyword ":a"]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -274,8 +315,9 @@
          [:symbol "true"]]]
        [:whitespace " "]
        [:vector
-        [:keyword ":a"]]]]
-    ) # => true
+        [:keyword ":a"]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -283,8 +325,9 @@
     #
     @[[:tag
        [:symbol "uuid"] [:whitespace " "]
-       [:string "\"00000000-0000-0000-0000-000000000000\""]]]
-    ) # => true
+       [:string "\"00000000-0000-0000-0000-000000000000\""]]])
+  # =>
+  true
 
   (deep=
     #
@@ -295,8 +338,9 @@
         [:keyword ":clj"] [:whitespace " "]
         [:number "0"] [:whitespace " "]
         [:keyword ":cljr"] [:whitespace " "]
-        [:number "1"]]]]
-    ) # => true
+        [:number "1"]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -308,8 +352,9 @@
         [:keyword ":clj"] [:whitespace " "]
         [:number "0"] [:whitespace " "]
         [:keyword ":cljr"] [:whitespace " "]
-        [:number "1"]]]]
-    ) # => true
+        [:number "1"]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -324,8 +369,9 @@
         [:keyword ":cljr"] [:whitespace " "]
         [:vector
          [:number "8"] [:whitespace " "]
-         [:number "9"]]]]]
-    ) # => true
+         [:number "9"]]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -341,11 +387,13 @@
         [:keyword ":cljr"] [:whitespace " "]
         [:vector
          [:number "8"] [:whitespace " "]
-         [:number "9"]]]]]
-    ) # => true
+         [:number "9"]]]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "#_ a")
-  # => @[[:discard [:whitespace " "] [:symbol "a"]]]
+  # =>
+  @[[:discard [:whitespace " "] [:symbol "a"]]]
 
   (deep=
     #
@@ -356,8 +404,9 @@
        [:discard
         [:whitespace " "] [:keyword ":a"]]
        [:whitespace " "]
-       [:keyword ":b"]]]
-    ) # => true
+       [:keyword ":b"]]])
+  # =>
+  true
 
   )
 
@@ -377,11 +426,13 @@
        (:list
          (:symbol "+") (:whitespace " ")
          (:number "1") (:whitespace " ")
-         (:number "1"))]
-    ) # => true
+         (:number "1"))])
+  # =>
+  true
 
   (ast "")
-  # => [:code]
+  # =>
+  [:code]
 
   )
 
@@ -540,101 +591,124 @@
 (comment
 
   (code [:code [:keyword ":a"]])
-  # => ":a"
+  # =>
+  ":a"
 
   (code [:code [:number "1"]])
-  # => "1"
+  # =>
+  "1"
 
   (code [:code [:whitespace " "]])
-  # => " "
+  # =>
+  " "
 
   (code [:code
          [:list
           [:number "1"] [:whitespace " "]
           [:number "2"]]])
-  # => "(1 2)"
+  # =>
+  "(1 2)"
 
   (code [:code
          [:map
           [:keyword ":a"] [:whitespace " "]
           [:number "1"]]])
-  # => "{:a 1}"
+  # =>
+  "{:a 1}"
 
   (code [:code
          [:vector
           [:number "1"] [:whitespace " "]
           [:number "2"]]])
-  # => "[1 2]"
+  # =>
+  "[1 2]"
 
   (code [:code
          [:set
           [:number "1"] [:whitespace " "]
           [:number "2"]]])
-  # => "#{1 2}"
+  # =>
+  "#{1 2}"
 
   (code [:code [:character "\\newline"]])
-  # => "\\newline"
+  # =>
+  "\\newline"
 
   (code [:code [:comment ";; hi"]])
-  # => ";; hi"
+  # =>
+  ";; hi"
 
   (code [:code [:string "\"smile\""]])
-  # => "\"smile\""
+  # =>
+  "\"smile\""
 
   (code [:code [:symbol "a"]])
-  # => "a"
+  # =>
+  "a"
 
   (code [:code [:regex "\".\""]])
-  # => "#\".\""
+  # =>
+  "#\".\""
 
   (code [:code [:quote [:symbol "a"]]])
-  # => "'a"
+  # =>
+  "'a"
 
   (code [:code
          [:quote
           [:list
            [:keyword ":a"]]]])
-  # => "'(:a)"
+  # =>
+  "'(:a)"
 
   (code [:code
          [:fn
           [:list
            [:symbol "inc"] [:whitespace " "]
            [:symbol "%"]]]])
-  # => "#(inc %)"
+  # =>
+  "#(inc %)"
 
   (code [:code [:deref [:symbol "a"]]])
-  # => "@a"
+  # =>
+  "@a"
 
   (code [:code
          [:deref
           [:list
            [:symbol "atom"] [:whitespace " "]
            [:symbol "nil"]]]])
-  # => "@(atom nil)"
+  # =>
+  "@(atom nil)"
 
   (code [:code [:backtick [:symbol "a"]]])
-  # => "`a"
+  # =>
+  "`a"
 
   (code [:code [:unquote [:symbol "a"]]])
-  # => "~a"
+  # =>
+  "~a"
 
   (code [:code [:unquote-splicing [:symbol "a"]]])
-  # => "~@a"
+  # =>
+  "~@a"
 
   (code [:code
          [:discard
           [:whitespace " "] [:symbol "a"]]])
-  # => "#_ a"
+  # =>
+  "#_ a"
 
   (code [:code [:var-quote [:symbol "a"]]])
-  # => "#'a"
+  # =>
+  "#'a"
 
   (code [:code
          [:tag
           [:symbol "uuid"] [:whitespace " "]
           [:string "\"00000000-0000-0000-0000-000000000000\""]]])
-  # => "#uuid \"00000000-0000-0000-0000-000000000000\""
+  # =>
+  "#uuid \"00000000-0000-0000-0000-000000000000\""
 
   (code [:code [:metadata
                 [:metadata-entry
@@ -644,7 +718,8 @@
                 [:whitespace " "]
                 [:vector
                  [:keyword ":a"]]]])
-  # => "^{:a true} [:a]"
+  # =>
+  "^{:a true} [:a]"
 
   (code [:code [:metadata
                 [:deprecated-metadata-entry
@@ -654,37 +729,44 @@
                 [:whitespace " "]
                 [:vector
                  [:keyword ":a"]]]])
-  # => "#^{:a true} [:a]"
+  # =>
+  "#^{:a true} [:a]"
 
   (code [:code
          [:namespaced-map
           [:macro-keyword "::a"]
           [:map]]])
-  # => "#::a{}"
+  # =>
+  "#::a{}"
 
   (code [:code
          [:namespaced-map
           [:auto-resolve]
           [:map]]])
-  # => "#::{}"
+  # =>
+  "#::{}"
 
   (code [:code
          [:namespaced-map
           [:keyword ":a"]
           [:map]]])
-  # => "#:a{}"
+  # =>
+  "#:a{}"
 
   (code [:code [:macro-keyword "::a"]])
-  # => "::a"
+  # =>
+  "::a"
 
   (code [:code [:symbolic [:symbol "Inf"]]])
-  # => "##Inf"
+  # =>
+  "##Inf"
 
   (code [:code
          [:symbolic
           [:whitespace " "]
           [:symbol "NaN"]]])
-  # => "## NaN"
+  # =>
+  "## NaN"
 
   (code [:code
          [:conditional
@@ -693,7 +775,8 @@
            [:number "0"] [:whitespace " "]
            [:keyword ":cljr"] [:whitespace " "]
            [:number "1"]]]])
-  # => "#?(:clj 0 :cljr 1)"
+  # =>
+  "#?(:clj 0 :cljr 1)"
 
   (code [:code
           [:conditional-splicing
@@ -706,10 +789,12 @@
             [:vector
              [:number "8"] [:whitespace " "]
              [:number "9"]]]]])
-  # => "#?@(:clj [0 1] :cljr [8 9])"
+  # =>
+  "#?@(:clj [0 1] :cljr [8 9])"
 
   (code [:code [:eval [:symbol "a"]]])
-  # => "#=a"
+  # =>
+  "#=a"
 
   (code [:code
          [:eval
@@ -717,7 +802,8 @@
            [:symbol "+"] [:whitespace " "]
            [:symbol "a"] [:whitespace " "]
            [:symbol "b"]]]])
-  # => "#=(+ a b)"
+  # =>
+  "#=(+ a b)"
 
   )
 
@@ -729,106 +815,140 @@
     (code (ast src)))
 
   (round-trip ":a")
-  # => ":a"
+  # =>
+  ":a"
 
   (round-trip "1")
-  # => "1"
+  # =>
+  "1"
 
   (round-trip " ")
-  # => " "
+  # =>
+  " "
 
   (round-trip "(1 2)")
-  # => "(1 2)"
+  # =>
+  "(1 2)"
 
   (round-trip "{:a 1}")
-  # => "{:a 1}"
+  # =>
+  "{:a 1}"
 
   (round-trip "[1 2]")
-  # => "[1 2]"
+  # =>
+  "[1 2]"
 
   (round-trip "#{1 2}")
-  # => "#{1 2}"
+  # =>
+  "#{1 2}"
 
   (round-trip "\\newline")
-  # => "\\newline"
+  # =>
+  "\\newline"
 
   (round-trip ";; hi")
-  # => ";; hi"
+  # =>
+  ";; hi"
 
   (round-trip "\"smile\"")
-  # => "\"smile\""
+  # =>
+  "\"smile\""
 
   (round-trip "a")
-  # => "a"
+  # =>
+  "a"
 
   (round-trip "#\".\"")
-  # => "#\".\""
+  # =>
+  "#\".\""
 
   (round-trip "'a")
-  # => "'a"
+  # =>
+  "'a"
 
   (round-trip "'(:a)")
-  # => "'(:a)"
+  # =>
+  "'(:a)"
 
   (round-trip "#(inc %)")
-  # => "#(inc %)"
+  # =>
+  "#(inc %)"
 
   (round-trip "@a")
-  # => "@a"
+  # =>
+  "@a"
 
   (round-trip "@(atom nil)")
-  # => "@(atom nil)"
+  # =>
+  "@(atom nil)"
 
   (round-trip "`a")
-  # => "`a"
+  # =>
+  "`a"
 
   (round-trip "~a")
-  # => "~a"
+  # =>
+  "~a"
 
   (round-trip "~@a")
-  # => "~@a"
+  # =>
+  "~@a"
 
   (round-trip "#_ a")
-  # => "#_ a"
+  # =>
+  "#_ a"
 
   (round-trip "#'a")
-  # => "#'a"
+  # =>
+  "#'a"
 
   (round-trip "#uuid \"00000000-0000-0000-0000-000000000000\"")
-  # => "#uuid \"00000000-0000-0000-0000-000000000000\""
+  # =>
+  "#uuid \"00000000-0000-0000-0000-000000000000\""
 
   (round-trip "^{:a true} [:a]")
-  # => "^{:a true} [:a]"
+  # =>
+  "^{:a true} [:a]"
 
   (round-trip "#^{:a true} [:a]")
-  # => "#^{:a true} [:a]"
+  # =>
+  "#^{:a true} [:a]"
 
   (round-trip "#::a{}")
-  # => "#::a{}"
+  # =>
+  "#::a{}"
 
   (round-trip "#::{}")
-  # => "#::{}"
+  # =>
+  "#::{}"
 
   (round-trip "#:a{}")
-  # => "#:a{}"
+  # =>
+  "#:a{}"
 
   (round-trip "::a")
-  # => "::a"
+  # =>
+  "::a"
 
   (round-trip "##Inf")
-  # => "##Inf"
+  # =>
+  "##Inf"
 
   (round-trip "#?(:clj 0 :cljr 1)")
-  # => "#?(:clj 0 :cljr 1)"
+  # =>
+  "#?(:clj 0 :cljr 1)"
 
   (round-trip "#?@(:clj [0 1] :cljr [8 9])")
-  # => "#?@(:clj [0 1] :cljr [8 9])"
+  # =>
+  "#?@(:clj [0 1] :cljr [8 9])"
 
   (round-trip "#=a")
-  # => "#=a"
+  # =>
+  "#=a"
 
   (round-trip "#=(+ a b)")
-  # => "#=(+ a b)"
+  # =>
+  "#=(+ a b)"
 
   )
 

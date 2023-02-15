@@ -271,108 +271,143 @@
 (comment
 
   (peg/match cg "")
-  # => nil
+  # =>
+  nil
 
   (peg/match cg " ")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg ";")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "; ")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "1")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "2.0")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "6.022e23")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "1e8")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "1/2")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "0x1")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "01")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "017")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "0377")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "2r01")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "36rA")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "()")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "{}")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "{:a 1}")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "a")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg ":a")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "::a")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "#_ 2")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "@a")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "'a")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "##Inf")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "## NaN")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "#'a")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "#::{}")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "#{}")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "(defn hi [] 1)")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "^{:a true} [:a :b]")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "#?(:clj 1 :cljr 2)")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "#? (:clj 1 :cljr 2)")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "[#?@(:clj [:a] :cljr [:b])]")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg "[#?@ (:clj [:a] :cljr [:b])]")
-  # => @[]
+  # =>
+  @[]
 
   )

@@ -71,25 +71,32 @@
 (comment
 
   (peg/match cg-capture-ast ":a")
-  # => @[[:keyword 0 ":a"]]
+  # =>
+  @[[:keyword 0 ":a"]]
 
   (peg/match cg-capture-ast "\"smile\"")
-  # => @[[:string 0 "\"smile\""]]
+  # =>
+  @[[:string 0 "\"smile\""]]
 
   (peg/match cg-capture-ast "1/2")
-  # => @[[:number 0 "1/2"]]
+  # =>
+  @[[:number 0 "1/2"]]
 
   (peg/match cg-capture-ast "defmacro")
-  # => @[[:symbol 0 "defmacro"]]
+  # =>
+  @[[:symbol 0 "defmacro"]]
 
   (peg/match cg-capture-ast "::a")
-  # => @[[:macro-keyword 0 "::a"]]
+  # =>
+  @[[:macro-keyword 0 "::a"]]
 
   (peg/match cg-capture-ast "\\a")
-  # => @[[:character 0 "\\a"]]
+  # =>
+  @[[:character 0 "\\a"]]
 
   (peg/match cg-capture-ast "{}")
-  # => @[[:map 0]]
+  # =>
+  @[[:map 0]]
 
   (deep=
     #
@@ -98,8 +105,9 @@
     @[[:map 0
        [:keyword 1 ":a"]
        [:whitespace 3 " "]
-       [:number 4 "1"]]]
-    ) # => true
+       [:number 4 "1"]]])
+  # =>
+  true
 
   (deep=
     #
@@ -107,8 +115,9 @@
     #
     @[[:namespaced-map 0
        [:auto-resolve 1]
-       [:map 3]]]
-    ) # => true
+       [:map 3]]])
+  # =>
+  true
 
   (deep=
     #
@@ -116,8 +125,8 @@
     #
     @[[:namespaced-map 0
        [:macro-keyword 1 "::a"]
-       [:map 4]]]
-    ) # => true
+       [:map 4]]])
+  # => true
 
   (deep=
     #
@@ -125,30 +134,35 @@
     #
     @[[:namespaced-map 0
        [:keyword 1 ":a"]
-       [:map 3]]]
-    ) # => true
+       [:map 3]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "[]")
-  # => @[[:vector 0]]
+  # =>
+  @[[:vector 0]]
 
   (deep=
     #
     (peg/match cg-capture-ast "[:a]")
     #
     @[[:vector 0
-       [:keyword 1 ":a"]]]
-    ) # => true
+       [:keyword 1 ":a"]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "()")
-  # => @[[:list 0]]
+  #  =>
+  @[[:list 0]]
 
   (deep=
     #
     (peg/match cg-capture-ast "(:a)")
     #
     @[[:list 0
-       [:keyword 1 ":a"]]]
-    ) # => true
+       [:keyword 1 ":a"]]])
+  # =>
+  true
 
   (deep=
     #
@@ -162,8 +176,9 @@
          [:symbol 5 "true"]]]
        [:whitespace 10 " "]
        [:vector 11
-        [:keyword 12 ":a"]]]]
-    ) # => true
+        [:keyword 12 ":a"]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -177,48 +192,54 @@
          [:symbol 6 "true"]]]
        [:whitespace 11 " "]
        [:vector 12
-        [:keyword 13 ":a"]]]]
-    ) # => true
+        [:keyword 13 ":a"]]]])
+  # =>
+  true
 
   (deep=
     #
     (peg/match cg-capture-ast "`a")
     #
     @[[:backtick 0
-       [:symbol 1 "a"]]]
-    ) # => true
+       [:symbol 1 "a"]]])
+  # =>
+  true
 
   (deep=
     #
     (peg/match cg-capture-ast "'a")
     #
     @[[:quote 0
-       [:symbol 1 "a"]]]
-    ) # => true
+       [:symbol 1 "a"]]])
+  # =>
+  true
 
   (deep=
     #
     (peg/match cg-capture-ast "~a")
     #
     @[[:unquote 0
-       [:symbol 1 "a"]]]
-    ) # => true
+       [:symbol 1 "a"]]])
+  # =>
+  true
 
   (deep=
     #
     (peg/match cg-capture-ast "~@a")
     #
     @[[:unquote-splicing 0
-       [:symbol 2 "a"]]]
-    ) # => true
+       [:symbol 2 "a"]]])
+  # =>
+  true
 
   (deep=
     #
     (peg/match cg-capture-ast "@a")
     #
     @[[:deref 0
-       [:symbol 1 "a"]]]
-    ) # => true
+       [:symbol 1 "a"]]])
+  # =>
+  true
 
   (deep=
     #
@@ -228,27 +249,31 @@
        [:list 1
         [:symbol 2 "inc"]
         [:whitespace 5 " "]
-        [:symbol 6 "%"]]]]
-    ) # => true
+        [:symbol 6 "%"]]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "#\".\"")
-  # => @[[:regex 0 "\".\""]]
+  # =>
+  @[[:regex 0 "\".\""]]
 
   (deep=
     #
     (peg/match cg-capture-ast "#{:a}")
     #
     @[[:set 0
-       [:keyword 2 ":a"]]]
-    ) # => true
+       [:keyword 2 ":a"]]])
+  # =>
+  true
 
   (deep=
     #
     (peg/match cg-capture-ast "#'a")
     #
     @[[:var-quote 0
-       [:symbol 2 "a"]]]
-    ) # => true
+       [:symbol 2 "a"]]])
+  # =>
+  true
 
   (deep=
     #
@@ -256,8 +281,9 @@
     #
     @[[:discard 0
        [:whitespace 2 " "]
-       [:symbol 3 "a"]]]
-    ) # => true
+       [:symbol 3 "a"]]])
+  # =>
+  true
 
   (deep=
     (peg/match cg-capture-ast
@@ -266,17 +292,21 @@
     @[[:tag 0
        [:symbol 1 "uuid"]
        [:whitespace 5 " "]
-       [:string 6 "\"00000000-0000-0000-0000-000000000000\""]]]
-    ) # => true
+       [:string 6 "\"00000000-0000-0000-0000-000000000000\""]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast " ")
-  # => @[[:whitespace 0 " "]]
+  # =>
+  @[[:whitespace 0 " "]]
 
   (peg/match cg-capture-ast "; hey")
-  # => @[[:comment 0 "; hey"]]
+  # =>
+  @[[:comment 0 "; hey"]]
 
   (peg/match cg-capture-ast "#! foo")
-  # => @[[:comment 0 "#! foo"]]
+  # =>
+  @[[:comment 0 "#! foo"]]
 
   (deep=
     #
@@ -290,8 +320,9 @@
         [:whitespace 9 " "]
         [:keyword 10 ":cljr"]
         [:whitespace 15 " "]
-        [:number 16 "1"]]]]
-    ) # => true
+        [:number 16 "1"]]]])
+  # =>
+  true
 
   (deep=
     #
@@ -312,19 +343,22 @@
         [:vector 21
          [:number 22 "1"]
          [:whitespace 23 " "]
-         [:number 24 "2"]]]]]
-    ) # => true
+         [:number 24 "2"]]]]])
+  # =>
+  true
 
   (peg/match cg-capture-ast "##NaN")
-  # => @[[:symbolic 0 "NaN"]]
+  # =>
+  @[[:symbolic 0 "NaN"]]
 
   (deep=
     #
     (peg/match cg-capture-ast "#=a")
     #
     @[[:eval 0
-       [:symbol 2 "a"]]]
-    ) # => true
+       [:symbol 2 "a"]]])
+  # =>
+  true
 
   )
 

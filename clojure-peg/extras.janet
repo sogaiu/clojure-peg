@@ -13,38 +13,48 @@
 (comment
 
   (peg/match cg-one "\"\\u0030\"")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg-one "(def a 1)")
-  # => @[]
+  # =>
+  @[]
 
   (try
     (peg/match cg-one "[:a :b)")
     ([e] e))
-  # => "missing ]"
+  # =>
+  "missing ]"
 
   (peg/match cg-one "(def a ; hi\n 1)")
-  # => @[]
+  # =>
+  @[]
 
   (try
     (peg/match cg-one "(def a ; hi 1)")
     ([e] e))
-  # => "missing )"
+  # =>
+  "missing )"
 
   (peg/match cg-one "[1]")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg-one "; hello")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg-one "8")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg-one "[:a :b]")
-  # => @[]
+  # =>
+  @[]
 
   (peg/match cg-one "[:a :b] 1")
-  # => @[]
+  # =>
+  @[]
 
  )
 
@@ -60,46 +70,60 @@
 (comment
 
  (peg/match cg-capture-all "")
- # => nil
+  # =>
+  nil
 
  (peg/match cg-capture-all "()")
- # => @["()"]
+  # =>
+  @["()"]
 
  (peg/match cg-capture-all "[]")
- # => @["[]"]
+  # =>
+  @["[]"]
 
  (peg/match cg-capture-all "{}")
- # => @["{}"]
+  # =>
+  @["{}"]
 
  (peg/match cg-capture-all "#{}")
- # => @["#{}"]
+  # =>
+  @["#{}"]
 
  (peg/match cg-capture-all "#::{}")
- # => @["#::{}"]
+  # =>
+  @["#::{}"]
 
  (peg/match cg-capture-all "1")
- # => @["1"]
+  # =>
+  @["1"]
 
  (peg/match cg-capture-all "1/2")
- # => @["1/2"]
+  # =>
+  @["1/2"]
 
  (peg/match cg-capture-all ":a")
- # => @[":a"]
+  # =>
+  @[":a"]
 
  (peg/match cg-capture-all "::a")
- # => @["::a"]
+  # =>
+  @["::a"]
 
  (peg/match cg-capture-all "\"a\"")
- # => @["\"a\""]
+  # =>
+  @["\"a\""]
 
  (peg/match cg-capture-all "#\".\"")
- # => @["#\".\""]
+  # =>
+  @["#\".\""]
 
  (peg/match cg-capture-all "#_ a")
- # => @["#_ a"]
+  # =>
+  @["#_ a"]
 
  (peg/match cg-capture-all "(def a 1) :a")
- # => @["(def a 1) :a"]
+  # =>
+  @["(def a 1) :a"]
 
  )
 
@@ -123,13 +147,16 @@
  # => @[";; \"my test\""]
 
  (peg/match cg-capture-one sample-source 12)
- # => @["\n"]
+  # =>
+  @["\n"]
 
  (peg/match cg-capture-one sample-source 13)
- # => @["(+ 1 1)"]
+  # =>
+  @["(+ 1 1)"]
 
  (peg/match cg-capture-one sample-source 21)
- # => @[";; => 2"]
+  # =>
+  @[";; => 2"]
 
  )
 
@@ -145,51 +172,67 @@
 (comment
 
  (peg/match cg-capture-top-levels "")
-  # => nil
+  # =>
+  nil
 
  (peg/match cg-capture-top-levels "()")
-  # => @["()"]
+  # =>
+  @["()"]
 
  (peg/match cg-capture-top-levels "[]")
- # => @["[]"]
+  # =>
+  @["[]"]
 
  (peg/match cg-capture-top-levels "{}")
- # => @["{}"]
+  # =>
+  @["{}"]
 
  (peg/match cg-capture-top-levels "#{}")
- # => @["#{}"]
+  # =>
+  @["#{}"]
 
  (peg/match cg-capture-top-levels "#::{}")
- # => @["#::{}"]
+  # =>
+  @["#::{}"]
 
  (peg/match cg-capture-top-levels "1")
- # => @["1"]
+  # =>
+  @["1"]
 
  (peg/match cg-capture-top-levels "1/2")
- # => @["1/2"]
+  # =>
+  @["1/2"]
 
  (peg/match cg-capture-top-levels ":a")
- # => @[":a"]
+  # =>
+  @[":a"]
 
  (peg/match cg-capture-top-levels "::a")
- # => @["::a"]
+  # =>
+  @["::a"]
 
  (peg/match cg-capture-top-levels "\"a\"")
- # => @["\"a\""]
+  # =>
+  @["\"a\""]
 
  (peg/match cg-capture-top-levels "#\".\"")
- # => @["#\".\""]
+  # =>
+  @["#\".\""]
 
  (peg/match cg-capture-top-levels "#_ a")
- # => @["#_ a"]
+  # =>
+  @["#_ a"]
 
  (peg/match cg-capture-top-levels "(def a 1) :a")
- # => @["(def a 1)" " " ":a"]
+  # =>
+  @["(def a 1)" " " ":a"]
 
  (peg/match cg-capture-top-levels "^{:a true} [:a :b]")
- # => @["^{:a true} [:a :b]"]
+  # =>
+  @["^{:a true} [:a :b]"]
 
  (peg/match cg-capture-top-levels "\\a")
- # => @["\\a"]
+  # =>
+  @["\\a"]
 
  )
