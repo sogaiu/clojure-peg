@@ -227,6 +227,7 @@
 
    (import ./rewrite :fresh true)
 
+   # fails on clojars-cljish/shen/clj/shen.clj/0.1.6/shen.clj-0.1.6.jar/shen.clj
    (let [start (os/time)]
      (visit-files (path-join (os/getenv "HOME")
                              "src/clojars-cljish")
@@ -235,14 +236,14 @@
                              (= (path-ext $) ".cljs"))
                      (let [src (slurp $)
                            ast (try
-                                 (rewrite/ast src)
+                                 (rewrite/par src)
                                  ([err]
                                    (print "ast fail: " $)
                                    nil))]
                        (if (not ast)
                          (eprint "ast nil: " $)
                          (when (not= (string src)
-                                     (rewrite/code ast))
+                                     (rewrite/gen ast))
                            (eprint $))))))
      (print (- (os/time) start) " secs"))
 

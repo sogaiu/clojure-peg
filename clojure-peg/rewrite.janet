@@ -410,7 +410,7 @@
 
   )
 
-(defn ast
+(defn par
   [src]
   (if-let [parsed (peg/match cg-capture-ast src)]
     (array/insert parsed 0 :code)
@@ -420,7 +420,7 @@
 
   (deep=
     #
-    (ast "(+ 1 1)")
+    (par "(+ 1 1)")
     #
     '@[:code
        (:list
@@ -430,18 +430,18 @@
   # =>
   true
 
-  (ast "")
+  (par "")
   # =>
   [:code]
 
   )
 
-(defn code*
+(defn gen*
   [ast buf]
   (case (first ast)
     :code
     (each elt (drop 1 ast)
-          (code* elt buf))
+          (gen* elt buf))
     #
     :character
     (buffer/push-string buf (in ast 1))
@@ -464,114 +464,114 @@
     (do
       (buffer/push-string buf "(")
       (each elt (drop 1 ast)
-            (code* elt buf))
+            (gen* elt buf))
       (buffer/push-string buf ")"))
     :map
     (do
       (buffer/push-string buf "{")
       (each elt (drop 1 ast)
-            (code* elt buf))
+            (gen* elt buf))
       (buffer/push-string buf "}"))
     :set
     (do
       (buffer/push-string buf "#{")
       (each elt (drop 1 ast)
-            (code* elt buf))
+            (gen* elt buf))
       (buffer/push-string buf "}"))
     :vector
     (do
       (buffer/push-string buf "[")
       (each elt (drop 1 ast)
-            (code* elt buf))
+            (gen* elt buf))
       (buffer/push-string buf "]"))
     #
     :namespaced-map
     (do
       (buffer/push-string buf "#")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :quote
     (do
       (buffer/push-string buf "'")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :fn
     (do
       (buffer/push-string buf "#")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :deref
     (do
       (buffer/push-string buf "@")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :backtick
     (do
       (buffer/push-string buf "`")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :unquote
     (do
       (buffer/push-string buf "~")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :unquote-splicing
     (do
       (buffer/push-string buf "~@")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :discard
     (do
       (buffer/push-string buf "#_")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :var-quote
     (do
       (buffer/push-string buf "#'")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :metadata-entry
     (do
       (buffer/push-string buf "^")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :deprecated-metadata-entry
     (do
       (buffer/push-string buf "#^")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     #
     :symbolic
     (do
       (buffer/push-string buf "##")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :tag
     (do
       (buffer/push-string buf "#")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :conditional
     (do
       (buffer/push-string buf "#?")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :conditional-splicing
     (do
       (buffer/push-string buf "#?@")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     :eval
     (do
       (buffer/push-string buf "#=")
       (each elt (drop 1 ast)
-            (code* elt buf)))
+            (gen* elt buf)))
     #
     :metadata
     (do
       (each elt (tuple/slice ast 1 -2)
-            (code* elt buf))
-      (code* (last ast) buf))
+            (gen* elt buf))
+      (gen* (last ast) buf))
     #
     :regex
     (do
@@ -582,226 +582,226 @@
     (buffer/push-string buf "::")
     ))
 
-(defn code
+(defn gen
   [ast]
   (let [buf @""]
-    (code* ast buf)
+    (gen* ast buf)
     (string buf)))
 
 (comment
 
-  (code [:code [:keyword ":a"]])
+  (gen [:code [:keyword ":a"]])
   # =>
   ":a"
 
-  (code [:code [:number "1"]])
+  (gen [:code [:number "1"]])
   # =>
   "1"
 
-  (code [:code [:whitespace " "]])
+  (gen [:code [:whitespace " "]])
   # =>
   " "
 
-  (code [:code
-         [:list
-          [:number "1"] [:whitespace " "]
-          [:number "2"]]])
+  (gen [:code
+        [:list
+         [:number "1"] [:whitespace " "]
+         [:number "2"]]])
   # =>
   "(1 2)"
 
-  (code [:code
-         [:map
-          [:keyword ":a"] [:whitespace " "]
-          [:number "1"]]])
+  (gen [:code
+        [:map
+         [:keyword ":a"] [:whitespace " "]
+         [:number "1"]]])
   # =>
   "{:a 1}"
 
-  (code [:code
-         [:vector
-          [:number "1"] [:whitespace " "]
-          [:number "2"]]])
+  (gen [:code
+        [:vector
+         [:number "1"] [:whitespace " "]
+         [:number "2"]]])
   # =>
   "[1 2]"
 
-  (code [:code
-         [:set
-          [:number "1"] [:whitespace " "]
-          [:number "2"]]])
+  (gen [:code
+        [:set
+         [:number "1"] [:whitespace " "]
+         [:number "2"]]])
   # =>
   "#{1 2}"
 
-  (code [:code [:character "\\newline"]])
+  (gen [:code [:character "\\newline"]])
   # =>
   "\\newline"
 
-  (code [:code [:comment ";; hi"]])
+  (gen [:code [:comment ";; hi"]])
   # =>
   ";; hi"
 
-  (code [:code [:string "\"smile\""]])
+  (gen [:code [:string "\"smile\""]])
   # =>
   "\"smile\""
 
-  (code [:code [:symbol "a"]])
+  (gen [:code [:symbol "a"]])
   # =>
   "a"
 
-  (code [:code [:regex "\".\""]])
+  (gen [:code [:regex "\".\""]])
   # =>
   "#\".\""
 
-  (code [:code [:quote [:symbol "a"]]])
+  (gen [:code [:quote [:symbol "a"]]])
   # =>
   "'a"
 
-  (code [:code
-         [:quote
-          [:list
-           [:keyword ":a"]]]])
+  (gen [:code
+        [:quote
+         [:list
+          [:keyword ":a"]]]])
   # =>
   "'(:a)"
 
-  (code [:code
-         [:fn
-          [:list
-           [:symbol "inc"] [:whitespace " "]
-           [:symbol "%"]]]])
+  (gen [:code
+        [:fn
+         [:list
+          [:symbol "inc"] [:whitespace " "]
+          [:symbol "%"]]]])
   # =>
   "#(inc %)"
 
-  (code [:code [:deref [:symbol "a"]]])
+  (gen [:code [:deref [:symbol "a"]]])
   # =>
   "@a"
 
-  (code [:code
-         [:deref
-          [:list
-           [:symbol "atom"] [:whitespace " "]
-           [:symbol "nil"]]]])
+  (gen [:code
+        [:deref
+         [:list
+          [:symbol "atom"] [:whitespace " "]
+          [:symbol "nil"]]]])
   # =>
   "@(atom nil)"
 
-  (code [:code [:backtick [:symbol "a"]]])
+  (gen [:code [:backtick [:symbol "a"]]])
   # =>
   "`a"
 
-  (code [:code [:unquote [:symbol "a"]]])
+  (gen [:code [:unquote [:symbol "a"]]])
   # =>
   "~a"
 
-  (code [:code [:unquote-splicing [:symbol "a"]]])
+  (gen [:code [:unquote-splicing [:symbol "a"]]])
   # =>
   "~@a"
 
-  (code [:code
-         [:discard
-          [:whitespace " "] [:symbol "a"]]])
+  (gen [:code
+        [:discard
+         [:whitespace " "] [:symbol "a"]]])
   # =>
   "#_ a"
 
-  (code [:code [:var-quote [:symbol "a"]]])
+  (gen [:code [:var-quote [:symbol "a"]]])
   # =>
   "#'a"
 
-  (code [:code
-         [:tag
-          [:symbol "uuid"] [:whitespace " "]
-          [:string "\"00000000-0000-0000-0000-000000000000\""]]])
+  (gen [:code
+        [:tag
+         [:symbol "uuid"] [:whitespace " "]
+         [:string "\"00000000-0000-0000-0000-000000000000\""]]])
   # =>
   "#uuid \"00000000-0000-0000-0000-000000000000\""
 
-  (code [:code [:metadata
-                [:metadata-entry
-                 [:map
-                  [:keyword ":a"] [:whitespace " "]
-                  [:symbol "true"]]]
-                [:whitespace " "]
-                [:vector
-                 [:keyword ":a"]]]])
+  (gen [:code [:metadata
+               [:metadata-entry
+                [:map
+                 [:keyword ":a"] [:whitespace " "]
+                 [:symbol "true"]]]
+               [:whitespace " "]
+               [:vector
+                [:keyword ":a"]]]])
   # =>
   "^{:a true} [:a]"
 
-  (code [:code [:metadata
-                [:deprecated-metadata-entry
-                 [:map
-                  [:keyword ":a"] [:whitespace " "]
-                  [:symbol "true"]]]
-                [:whitespace " "]
-                [:vector
-                 [:keyword ":a"]]]])
+  (gen [:code [:metadata
+               [:deprecated-metadata-entry
+                [:map
+                 [:keyword ":a"] [:whitespace " "]
+                 [:symbol "true"]]]
+               [:whitespace " "]
+               [:vector
+                [:keyword ":a"]]]])
   # =>
   "#^{:a true} [:a]"
 
-  (code [:code
-         [:namespaced-map
-          [:macro-keyword "::a"]
-          [:map]]])
+  (gen [:code
+        [:namespaced-map
+         [:macro-keyword "::a"]
+         [:map]]])
   # =>
   "#::a{}"
 
-  (code [:code
-         [:namespaced-map
-          [:auto-resolve]
-          [:map]]])
+  (gen [:code
+        [:namespaced-map
+         [:auto-resolve]
+         [:map]]])
   # =>
   "#::{}"
 
-  (code [:code
-         [:namespaced-map
-          [:keyword ":a"]
-          [:map]]])
+  (gen [:code
+        [:namespaced-map
+         [:keyword ":a"]
+         [:map]]])
   # =>
   "#:a{}"
 
-  (code [:code [:macro-keyword "::a"]])
+  (gen [:code [:macro-keyword "::a"]])
   # =>
   "::a"
 
-  (code [:code [:symbolic [:symbol "Inf"]]])
+  (gen [:code [:symbolic [:symbol "Inf"]]])
   # =>
   "##Inf"
 
-  (code [:code
-         [:symbolic
-          [:whitespace " "]
-          [:symbol "NaN"]]])
+  (gen [:code
+        [:symbolic
+         [:whitespace " "]
+         [:symbol "NaN"]]])
   # =>
   "## NaN"
 
-  (code [:code
-         [:conditional
-          [:list
-           [:keyword ":clj"] [:whitespace " "]
-           [:number "0"] [:whitespace " "]
-           [:keyword ":cljr"] [:whitespace " "]
-           [:number "1"]]]])
+  (gen [:code
+        [:conditional
+         [:list
+          [:keyword ":clj"] [:whitespace " "]
+          [:number "0"] [:whitespace " "]
+          [:keyword ":cljr"] [:whitespace " "]
+          [:number "1"]]]])
   # =>
   "#?(:clj 0 :cljr 1)"
 
-  (code [:code
-          [:conditional-splicing
-           [:list
-            [:keyword ":clj"] [:whitespace " "]
-            [:vector
-             [:number "0"] [:whitespace " "]
-             [:number "1"]] [:whitespace " "]
-            [:keyword ":cljr"] [:whitespace " "]
-            [:vector
-             [:number "8"] [:whitespace " "]
-             [:number "9"]]]]])
+  (gen [:code
+        [:conditional-splicing
+         [:list
+          [:keyword ":clj"] [:whitespace " "]
+          [:vector
+           [:number "0"] [:whitespace " "]
+           [:number "1"]] [:whitespace " "]
+          [:keyword ":cljr"] [:whitespace " "]
+          [:vector
+           [:number "8"] [:whitespace " "]
+           [:number "9"]]]]])
   # =>
   "#?@(:clj [0 1] :cljr [8 9])"
 
-  (code [:code [:eval [:symbol "a"]]])
+  (gen [:code [:eval [:symbol "a"]]])
   # =>
   "#=a"
 
-  (code [:code
-         [:eval
-          [:list
-           [:symbol "+"] [:whitespace " "]
-           [:symbol "a"] [:whitespace " "]
-           [:symbol "b"]]]])
+  (gen [:code
+        [:eval
+         [:list
+          [:symbol "+"] [:whitespace " "]
+          [:symbol "a"] [:whitespace " "]
+          [:symbol "b"]]]])
   # =>
   "#=(+ a b)"
 
@@ -811,8 +811,7 @@
 
   (defn round-trip
     [src]
-    # houston, we have a property :)
-    (code (ast src)))
+    (gen (par src)))
 
   (round-trip ":a")
   # =>
@@ -957,18 +956,18 @@
   (comment
 
     (let [src (slurp (string (os/getenv "HOME")
-                       "/src/clojure/src/clj/clojure/core.clj"))]
+                             "/src/clojure/src/clj/clojure/core.clj"))]
       (= (string src)
-        (code (ast src))))
+         (gen (par src))))
 
     # 73, 75 ms per
     (let [start (os/time)]
       (each i (range 1000)
-            (let [src
-                  (slurp (string (os/getenv "HOME")
-                                 "/src/clojure/src/clj/clojure/core.clj"))]
-              (= src
-                 (code (ast src)))))
+        (let [src
+              (slurp (string (os/getenv "HOME")
+                             "/src/clojure/src/clj/clojure/core.clj"))]
+          (= src
+             (gen (par src)))))
       (print (- (os/time) start)))
 
   )
