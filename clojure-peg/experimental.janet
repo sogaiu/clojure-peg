@@ -368,7 +368,7 @@
 
     (import ./rewrite)
 
-    (import ./rewrite-with-loc)
+    (import ./location)
 
     (defn test-peg-on-cc
       [a-peg n-iter]
@@ -400,7 +400,7 @@
     # capture and store both locations
     #    gc on: 157, 158, 161 ms
     #   gc off: 71, 66, 77 ms
-    (test-peg-on-cc rewrite-with-loc/cg-capture-ast 1000)
+    (test-peg-on-cc location/cg-capture-ast 1000)
 
     )
 
