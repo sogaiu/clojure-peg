@@ -51,6 +51,49 @@ true
 "(defn a [] {:a-1 1 :b-2 2})"
 ```
 
+With Location Info
+```janet
+(import clojure-peg/location)
+
+# parse code string
+(location/par "(+ 1 1)")
+# =>
+'@[:code @{:bc 1 :bl 1
+           :ec 8 :el 1}
+   (:list @{:bc 1 :bl 1
+            :ec 8 :el 1}
+          (:symbol @{:bc 2 :bl 1
+                     :ec 3 :el 1} "+")
+          (:whitespace @{:bc 3 :bl 1
+                         :ec 4 :el 1} " ")
+          (:number @{:bc 4 :bl 1
+                     :ec 5 :el 1} "1")
+          (:whitespace @{:bc 5 :bl 1
+                         :ec 6 :el 1} " ")
+          (:number @{:bc 6 :bl 1
+                     :ec 7 :el 1} "1"))]
+
+# generate code string
+(location/gen
+  '@[:code @{}
+     (:list @{}
+            (:symbol @{} "+")
+            (:whitespace @{} " ")
+            (:number @{} "1")
+            (:whitespace @{} " ")
+            (:number @{} "1"))])
+# =>
+"(+ 1 1)"
+
+# roundtrip
+(def src "{:x  :y \n :z  [:a  :b    :c]}")
+
+(= (location/gen (location/par src))
+   src)
+# =>
+true
+```
+
 ## Roundtrip Testing
 
 To perform roundtrip testing on syntactically valid `.clj` files, use

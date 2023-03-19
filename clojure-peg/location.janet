@@ -1,5 +1,14 @@
 (import ./grammar :prefix "")
 
+# bl - begin line
+# bc - begin column
+# el - end line
+# ec - end column
+(defn make-attrs
+  [& items]
+  (zipcoll [:bl :bc :el :ec]
+           items))
+
 # this looks complicated, but it's just wrapping pieces of the original
 # grammar with appropriate capture constructs that also capture start and
 # end positions
@@ -9,78 +18,61 @@
     (each kwd [:character :comment :keyword :macro-keyword :number
                :string :symbol :whitespace]
           (put ca kwd
-               ~(cmt (sequence (position)
-                               (capture ,(in ca kwd))
-                               (position))
-                     ,|[kwd {:start (first $&)
-                             :end (last $&)}
-                            (in $& 1)])))
+               ~(cmt (capture (sequence (line) (column)
+                                        ,(in ca kwd)
+                                        (line) (column)))
+                     ,|[kwd (make-attrs ;(slice $& 0 -2))
+                        (last $&)])))
     (each kwd [:backtick :conditional :conditional-splicing
                :deprecated-metadata-entry :deref :discard
                :eval :metadata :metadata-entry :namespaced-map
                :quote :tag :unquote :unquote-splicing :var-quote]
           (put ca kwd
-               ~(cmt (sequence (position)
-                               (capture ,(in ca kwd))
-                               (position))
-                     ,|[kwd {:start (first $&)
-                             :end (last $&)}
-                            ;(slice $& 1 -3)])))
+               ~(cmt (capture (sequence (line) (column)
+                                        ,(in ca kwd)
+                                        (line) (column)))
+                     ,|[kwd (make-attrs ;(slice $& 0 2) ;(slice $& -4 -2))
+                        ;(slice $& 2 -4)])))
     (each kwd [:list :map :set :vector]
-          (let [original (in ca kwd)
+          (let [open-delim (get-in ca [kwd 1])
                 wrap-target (get-in ca [kwd 2])
-                replacement (tuple # array needs to be converted
-                              ;(put (array ;original)
-                                    2 ~(capture ,wrap-target)))]
+                close-delim (get-in ca [kwd 3 1])
+                rest (get-in ca [kwd 3 2])]
             (put ca kwd
-                 ~(cmt (sequence (position)
-                                 ,replacement
-                                 (position))
-                       ,|[kwd {:start (first $&)
-                               :end (last $&)}
-                              ;(slice $& 1 -3)]))))
+                 ~(cmt (capture (sequence (line) (column)
+                                          ,open-delim
+                                          ,wrap-target
+                                          (choice ,close-delim ,rest)
+                                          (line) (column)))
+                       ,|[kwd (make-attrs ;(slice $& 0 2) ;(slice $& -4 -2))
+                          ;(slice $& 2 -4)]))))
     #
-    (let [original (in ca :regex)
-          wrap-target (get-in ca [:regex 2])
-          replacement (tuple # array needs to be converted
-                        ;(put (array ;original)
-                              2 ~(capture ,wrap-target)))]
-      (put ca :regex
-           ~(cmt (sequence (position)
-                           ,replacement
-                           (position))
-                 ,|[:regex {:start (first $&)
-                            :end (last $&)}
-                           (last (in $& 1))])))
+    (put ca :regex
+         ~(cmt (capture (sequence (line) (column)
+                                  ,(in ca :regex)
+                                  (line) (column)))
+               ,|[:regex (make-attrs ;(slice $& 0 2) ;(slice $& -4 -2))
+                  (last (get $& 2))]))
     #
-    (let [original (in ca :fn)
-          wrap-target (get-in ca [:fn 2])
-          replacement (tuple # array needs to be converted
-                        ;(put (array ;original)
-                              2 ~(capture ,wrap-target)))]
-      (put ca :fn
-           ~(cmt (sequence (position)
-                           ,replacement
-                           (position))
-                 ,|[:fn {:start (first $&)
-                         :end (last $&)}
-                    ;(slice $& 1 -3)])))
+    (put ca :fn
+         ~(cmt (capture (sequence (line) (column)
+                                  ,(in ca :fn)
+                                  (line) (column)))
+               ,|[:fn (make-attrs ;(slice $& 0 2) ;(slice $& -4 -2))
+                  (get $& 2)]))
     #
     (put ca :symbolic
-         ~(cmt (sequence (position)
-                         (capture ,(in ca :symbolic))
-                         (position))
-               ,|[:symbolic {:start (first $&)
-                             :end (last $&)}
-                            (last ;(slice $& 1 -3))]))
+         ~(cmt (capture (sequence (line) (column)
+                                  ,(in ca :symbolic)
+                                  (line) (column)))
+               ,|[:symbolic (make-attrs ;(slice $& 0 2) ;(slice $& -4 -2))
+                            (last ;(slice $& 2 -4))]))
     #
     (put ca :auto-resolve
-         ~(cmt (sequence (position)
-                         (capture ,(in ca :auto-resolve))
-                         (position))
-               ,(fn [& caps]
-                  [:auto-resolve {:start (first caps)
-                                  :end (last caps)}])))
+         ~(cmt (capture (sequence (line) (column)
+                                  ,(in ca :auto-resolve)
+                                  (line) (column)))
+               ,|[:auto-resolve (make-attrs ;(slice $& 0 -2)) ]))
     # tried using a table with a peg but had a problem, so use a struct
     (table/to-struct ca)))
 
@@ -88,40 +80,40 @@
 
   (peg/match cg-capture-ast ":a")
   # =>
-  @[[:keyword {:start 0 :end 2} ":a"]]
+  @[[:keyword @{:bc 1 :bl 1 :ec 3 :el 1} ":a"]]
 
   (peg/match cg-capture-ast "\"smile\"")
   # =>
-  @[[:string {:start 0 :end 7} "\"smile\""]]
+  @[[:string @{:bc 1 :bl 1 :ec 8 :el 1} "\"smile\""]]
 
   (peg/match cg-capture-ast "1/2")
   # =>
-  @[[:number {:start 0 :end 3} "1/2"]]
+  @[[:number @{:bc 1 :bl 1 :ec 4 :el 1} "1/2"]]
 
   (peg/match cg-capture-ast "defmacro")
   # =>
-  @[[:symbol {:start 0 :end 8} "defmacro"]]
+  @[[:symbol @{:bc 1 :bl 1 :ec 9 :el 1} "defmacro"]]
 
   (peg/match cg-capture-ast "::a")
   # =>
-  @[[:macro-keyword {:start 0 :end 3} "::a"]]
+  @[[:macro-keyword @{:bc 1 :bl 1 :ec 4 :el 1} "::a"]]
 
   (peg/match cg-capture-ast "\\a")
   # =>
-  @[[:character {:start 0 :end 2} "\\a"]]
+  @[[:character @{:bc 1 :bl 1 :ec 3 :el 1} "\\a"]]
 
   (peg/match cg-capture-ast "{}")
   # =>
-  @[[:map {:start 0 :end 2}]]
+  @[[:map @{:bc 1 :bl 1 :ec 3 :el 1}]]
 
   (deep=
     #
     (peg/match cg-capture-ast "{:a 1}")
     #
-    @[[:map {:start 0 :end 6}
-       [:keyword {:start 1 :end 3} ":a"]
-       [:whitespace {:start 3 :end 4} " "]
-       [:number {:start 4 :end 5} "1"]]])
+    @[[:map @{:bc 1 :bl 1 :ec 7 :el 1}
+       [:keyword @{:bc 2 :bl 1 :ec 4 :el 1} ":a"]
+       [:whitespace @{:bc 4 :bl 1 :ec 5 :el 1} " "]
+       [:number @{:bc 5 :bl 1 :ec 6 :el 1} "1"]]])
   # =>
   true
 
@@ -129,9 +121,9 @@
     #
     (peg/match cg-capture-ast "#::{}")
     #
-    @[[:namespaced-map {:start 0 :end 5}
-       [:auto-resolve {:start 1 :end 3}]
-       [:map {:start 3 :end 5}]]])
+    @[[:namespaced-map @{:bc 1 :bl 1 :ec 6 :el 1}
+       [:auto-resolve @{:bc 2 :bl 1 :ec 4 :el 1}]
+       [:map @{:bc 4 :bl 1 :ec 6 :el 1}]]])
   # =>
   true
 
@@ -139,9 +131,9 @@
     #
     (peg/match cg-capture-ast "#::a{}")
     #
-    @[[:namespaced-map {:start 0 :end 6}
-       [:macro-keyword {:start 1 :end 4} "::a"]
-       [:map {:start 4 :end 6}]]])
+    @[[:namespaced-map @{:bc 1 :bl 1 :ec 7 :el 1}
+       [:macro-keyword @{:bc 2 :bl 1 :ec 5 :el 1} "::a"]
+       [:map @{:bc 5 :bl 1 :ec 7 :el 1}]]])
   # =>
   true
 
@@ -149,157 +141,169 @@
     #
     (peg/match cg-capture-ast "#:a{}")
     #
-    @[[:namespaced-map {:start 0 :end 5}
-       [:keyword {:start 1 :end 3} ":a"]
-       [:map {:start 3 :end 5}]]])
+    @[[:namespaced-map @{:bc 1 :bl 1 :ec 6 :el 1}
+       [:keyword @{:bc 2 :bl 1 :ec 4 :el 1} ":a"]
+       [:map @{:bc 4 :bl 1 :ec 6 :el 1}]]])
   # =>
   true
 
   (peg/match cg-capture-ast "[]")
   # =>
-  @[[:vector {:start 0 :end 2}]]
+  @[[:vector @{:bc 1 :bl 1 :ec 3 :el 1}]]
 
   (deep=
     #
     (peg/match cg-capture-ast "[:a]")
     #
-    @[[:vector {:start 0 :end 4}
-       [:keyword {:start 1 :end 3} ":a"]]])
+    @[[:vector @{:bc 1 :bl 1 :ec 5 :el 1}
+       [:keyword @{:bc 2 :bl 1 :ec 4 :el 1} ":a"]]])
   # =>
   true
 
   (peg/match cg-capture-ast "()")
   # =>
-  @[[:list {:start 0 :end 2}]]
+  @[[:list @{:bc 1 :bl 1 :ec 3 :el 1}]]
 
   (deep=
     #
     (peg/match cg-capture-ast "(:a)")
     #
-    @[[:list {:start 0 :end 4}
-       [:keyword {:start 1 :end 3} ":a"]]]
-    ) # =>
+    @[[:list @{:bc 1 :bl 1 :ec 5 :el 1}
+       [:keyword @{:bc 2 :bl 1 :ec 4 :el 1} ":a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "^{:a true} [:a]")
     #
-    @[[:metadata {:start 0 :end 15}
-       [:metadata-entry {:start 0 :end 10}
-        [:map {:start 1 :end 10}
-         [:keyword {:start 2 :end 4} ":a"]
-         [:whitespace {:start 4 :end 5} " "]
-         [:symbol {:start 5 :end 9} "true"]]]
-       [:whitespace {:start 10 :end 11} " "]
-       [:vector {:start 11 :end 15}
-        [:keyword {:start 12 :end 14} ":a"]]]]
-    ) # =>
+    @[[:metadata @{:bc 1 :bl 1 :ec 16 :el 1}
+       [:metadata-entry @{:bc 1 :bl 1 :ec 11 :el 1}
+        [:map @{:bc 2 :bl 1 :ec 11 :el 1}
+         [:keyword @{:bc 3 :bl 1 :ec 5 :el 1} ":a"]
+         [:whitespace @{:bc 5 :bl 1 :ec 6 :el 1} " "]
+         [:symbol @{:bc 6 :bl 1 :ec 10 :el 1} "true"]]]
+       [:whitespace @{:bc 11 :bl 1 :ec 12 :el 1} " "]
+       [:vector @{:bc 12 :bl 1 :ec 16 :el 1}
+        [:keyword @{:bc 13 :bl 1 :ec 15 :el 1} ":a"]]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "#^{:a true} [:a]")
     #
-    @[[:metadata {:start 0 :end 16}
-       [:deprecated-metadata-entry {:start 0 :end 11}
-        [:map {:start 2 :end 11}
-         [:keyword {:start 3 :end 5} ":a"]
-         [:whitespace {:start 5 :end 6} " "]
-         [:symbol {:start 6 :end 10} "true"]]]
-       [:whitespace {:start 11 :end 12} " "]
-       [:vector {:start 12 :end 16}
-        [:keyword {:start 13 :end 15} ":a"]]]]
-    ) # =>
+    @[[:metadata @{:bc 1 :bl 1 :ec 17 :el 1}
+       [:deprecated-metadata-entry @{:bc 1 :bl 1 :ec 12 :el 1}
+        [:map @{:bc 3 :bl 1 :ec 12 :el 1}
+         [:keyword @{:bc 4 :bl 1 :ec 6 :el 1} ":a"]
+         [:whitespace @{:bc 6 :bl 1 :ec 7 :el 1} " "]
+         [:symbol @{:bc 7 :bl 1 :ec 11 :el 1} "true"]]]
+       [:whitespace @{:bc 12 :bl 1 :ec 13 :el 1} " "]
+       [:vector @{:bc 13 :bl 1 :ec 17 :el 1}
+        [:keyword @{:bc 14 :bl 1 :ec 16 :el 1} ":a"]]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "`a")
     #
-    @[[:backtick {:start 0 :end 2}
-       [:symbol {:start 1 :end 2} "a"]]]
-    ) # =>
+    @[[:backtick @{:bc 1 :bl 1 :ec 3 :el 1}
+       [:symbol @{:bc 2 :bl 1 :ec 3 :el 1} "a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "'a")
     #
-    @[[:quote {:start 0 :end 2}
-       [:symbol {:start 1 :end 2} "a"]]]
-    ) # =>
+    @[[:quote @{:bc 1 :bl 1 :ec 3 :el 1}
+       [:symbol @{:bc 2 :bl 1 :ec 3 :el 1} "a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "~a")
     #
-    @[[:unquote {:start 0 :end 2}
-       [:symbol {:start 1 :end 2} "a"]]]
-    ) # =>
+    @[[:unquote @{:bc 1 :bl 1 :ec 3 :el 1}
+       [:symbol @{:bc 2 :bl 1 :ec 3 :el 1} "a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "~@a")
     #
-    @[[:unquote-splicing {:start 0 :end 3}
-       [:symbol {:start 2 :end 3} "a"]]]
-    ) # =>
+    @[[:unquote-splicing @{:bc 1 :bl 1 :ec 4 :el 1}
+       [:symbol @{:bc 3 :bl 1 :ec 4 :el 1} "a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "@a")
     #
-    @[[:deref {:start 0 :end 2}
-       [:symbol {:start 1 :end 2} "a"]]]
-    ) # =>
+    @[[:deref @{:bc 1 :bl 1 :ec 3 :el 1}
+       [:symbol @{:bc 2 :bl 1 :ec 3 :el 1} "a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "#(inc %)")
     #
-    @[[:fn {:start 0 :end 8}
-       [:list {:start 1 :end 8}
-        [:symbol {:start 2 :end 5} "inc"]
-        [:whitespace {:start 5 :end 6} " "]
-        [:symbol {:start 6 :end 7} "%"]]]]
-    ) # =>
+    @[[:fn @{:bc 1 :bl 1 :ec 9 :el 1}
+       [:list @{:bc 2 :bl 1 :ec 9 :el 1}
+        [:symbol @{:bc 3 :bl 1 :ec 6 :el 1} "inc"]
+        [:whitespace @{:bc 6 :bl 1 :ec 7 :el 1} " "]
+        [:symbol @{:bc 7 :bl 1 :ec 8 :el 1} "%"]]]]
+    )
+  # =>
   true
 
   (peg/match cg-capture-ast "#\".\"")
   # =>
-  @[[:regex {:start 0 :end 4} "\".\""]]
+  @[[:regex @{:bc 1 :bl 1 :ec 5 :el 1} "\".\""]]
 
   (deep=
     #
     (peg/match cg-capture-ast "#{:a}")
     #
-    @[[:set {:start 0 :end 5}
-       [:keyword {:start 2 :end 4} ":a"]]]
-    ) # =>
+    @[[:set @{:bc 1 :bl 1 :ec 6 :el 1}
+       [:keyword @{:bc 3 :bl 1 :ec 5 :el 1} ":a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "#'a")
     #
-    @[[:var-quote {:start 0 :end 3}
-       [:symbol {:start 2 :end 3} "a"]]]
-    ) # =>
+    @[[:var-quote @{:bc 1 :bl 1 :ec 4 :el 1}
+       [:symbol @{:bc 3 :bl 1 :ec 4 :el 1} "a"]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "#_ a")
     #
-    @[[:discard {:start 0 :end 4}
-       [:whitespace {:start 2 :end 3} " "]
-       [:symbol {:start 3 :end 4} "a"]]]
-    ) # =>
+    @[[:discard @{:bc 1 :bl 1 :ec 5 :el 1}
+       [:whitespace @{:bc 3 :bl 1 :ec 4 :el 1} " "]
+       [:symbol @{:bc 4 :bl 1 :ec 5 :el 1} "a"]]]
+    )
+  # =>
   true
 
   (deep=
@@ -307,84 +311,114 @@
     (peg/match cg-capture-ast
                "#uuid \"00000000-0000-0000-0000-000000000000\"")
     #
-    @[[:tag {:start 0 :end 44}
-       [:symbol {:start 1 :end 5} "uuid"]
-       [:whitespace {:start 5 :end 6} " "]
-       [:string {:start 6 :end 44}
+    @[[:tag @{:bc 1 :bl 1 :ec 45 :el 1}
+       [:symbol @{:bc 2 :bl 1 :ec 6 :el 1} "uuid"]
+       [:whitespace @{:bc 6 :bl 1 :ec 7 :el 1} " "]
+       [:string @{:bc 7 :bl 1 :ec 45 :el 1}
         "\"00000000-0000-0000-0000-000000000000\""]]]
-    ) # =>
+    )
+  # =>
   true
 
   (peg/match cg-capture-ast " ")
   # =>
-  @[[:whitespace {:start 0 :end 1} " "]]
+  @[[:whitespace @{:bc 1 :bl 1 :ec 2 :el 1} " "]]
 
   (peg/match cg-capture-ast "; hey")
   # =>
-  @[[:comment {:start 0 :end 5} "; hey"]]
+  @[[:comment @{:bc 1 :bl 1 :ec 6 :el 1} "; hey"]]
 
   (peg/match cg-capture-ast "#! foo")
   # =>
-  @[[:comment {:start 0 :end 6} "#! foo"]]
+  @[[:comment @{:bc 1 :bl 1 :ec 7 :el 1} "#! foo"]]
 
   (deep=
     #
     (peg/match cg-capture-ast "#?(:clj 0 :cljr 1)")
     #
-    @[[:conditional {:start 0 :end 18}
-       [:list {:start 2 :end 18}
-        [:keyword {:start 3 :end 7} ":clj"]
-        [:whitespace {:start 7 :end 8} " "]
-        [:number {:start 8 :end 9} "0"]
-        [:whitespace {:start 9 :end 10} " "]
-        [:keyword {:start 10 :end 15} ":cljr"]
-        [:whitespace {:start 15 :end 16} " "]
-        [:number {:start 16 :end 17} "1"]]]]
-    ) # =>
+    @[[:conditional @{:bc 1 :bl 1 :ec 19 :el 1}
+       [:list @{:bc 3 :bl 1 :ec 19 :el 1}
+        [:keyword @{:bc 4 :bl 1 :ec 8 :el 1} ":clj"]
+        [:whitespace @{:bc 8 :bl 1 :ec 9 :el 1} " "]
+        [:number @{:bc 9 :bl 1 :ec 10 :el 1} "0"]
+        [:whitespace @{:bc 10 :bl 1 :ec 11 :el 1} " "]
+        [:keyword @{:bc 11 :bl 1 :ec 16 :el 1} ":cljr"]
+        [:whitespace @{:bc 16 :bl 1 :ec 17 :el 1} " "]
+        [:number @{:bc 17 :bl 1 :ec 18 :el 1} "1"]]]]
+    )
+  # =>
   true
 
   (deep=
     #
     (peg/match cg-capture-ast "#?@(:clj [0 1] :cljr [1 2])")
     #
-    @[[:conditional-splicing {:start 0 :end 27}
-       [:list {:start 3 :end 27}
-        [:keyword {:start 4 :end 8} ":clj"]
-        [:whitespace {:start 8 :end 9} " "]
-        [:vector {:start 9 :end 14}
-         [:number {:start 10 :end 11} "0"]
-         [:whitespace {:start 11 :end 12} " "]
-         [:number {:start 12 :end 13} "1"]]
-        [:whitespace {:start 14 :end 15} " "]
-        [:keyword {:start 15 :end 20} ":cljr"]
-        [:whitespace {:start 20 :end 21} " "]
-        [:vector {:start 21 :end 26}
-         [:number {:start 22 :end 23} "1"]
-         [:whitespace {:start 23 :end 24} " "]
-         [:number {:start 24 :end 25} "2"]]]]]
-    ) # =>
+    @[[:conditional-splicing @{:bc 1 :bl 1 :ec 28 :el 1}
+       [:list @{:bc 4 :bl 1 :ec 28 :el 1}
+        [:keyword @{:bc 5 :bl 1 :ec 9 :el 1} ":clj"]
+        [:whitespace @{:bc 9 :bl 1 :ec 10 :el 1} " "]
+        [:vector @{:bc 10 :bl 1 :ec 15 :el 1}
+         [:number @{:bc 11 :bl 1 :ec 12 :el 1} "0"]
+         [:whitespace @{:bc 12 :bl 1 :ec 13 :el 1} " "]
+         [:number @{:bc 13 :bl 1 :ec 14 :el 1} "1"]]
+        [:whitespace @{:bc 15 :bl 1 :ec 16 :el 1} " "]
+        [:keyword @{:bc 16 :bl 1 :ec 21 :el 1} ":cljr"]
+        [:whitespace @{:bc 21 :bl 1 :ec 22 :el 1} " "]
+        [:vector @{:bc 22 :bl 1 :ec 27 :el 1}
+         [:number @{:bc 23 :bl 1 :ec 24 :el 1} "1"]
+         [:whitespace @{:bc 24 :bl 1 :ec 25 :el 1} " "]
+         [:number @{:bc 25 :bl 1 :ec 26 :el 1} "2"]]]]]
+    )
+  # =>
   true
 
   (peg/match cg-capture-ast "##NaN")
   # =>
-  @[[:symbolic {:start 0 :end 5} "NaN"]]
+  @[[:symbolic @{:bc 1 :bl 1 :ec 6 :el 1} "NaN"]]
 
   (deep=
     #
     (peg/match cg-capture-ast "#=a")
     #
-    @[[:eval {:start 0 :end 3}
-       [:symbol {:start 2 :end 3} "a"]]]
-    ) # =>
+    @[[:eval @{:bc 1 :bl 1 :ec 4 :el 1}
+       [:symbol @{:bc 3 :bl 1 :ec 4 :el 1} "a"]]]
+    )
+  # =>
   true
 
   )
 
+(def loc-top-level-ast
+  (let [ltla (table ;(kvs cg-capture-ast))]
+    (put ltla :main
+         ~(sequence (line) (column)
+                    :input
+                    (line) (column)))
+    (table/to-struct ltla)))
+
+(def mod-ast
+  (let [ma (table ;(kvs cg-capture-ast))]
+    (put ma :main
+         ~(sequence (line) (column)
+                    (some :input)
+                    (line) (column)))
+    (table/to-struct ma)))
+
 (defn par
-  [src]
-  (array/insert
-    (peg/match cg-capture-ast src)
-    0 :code))
+  [src &opt start single]
+  (default start 0)
+  (if single
+    (if-let [[bl bc tree el ec]
+             (peg/match loc-top-level-ast src start)]
+      @[:code (make-attrs bl bc el ec) tree]
+      @[:code])
+    (if-let [captures (peg/match mod-ast src start)]
+      (let [[bl bc] (slice captures 0 2)
+            [el ec] (slice captures -3)
+            trees (array/slice captures 2 -3)]
+        (array/insert trees 0
+                      :code (make-attrs bl bc el ec)))
+      @[:code])))
 
 (comment
 
@@ -392,14 +426,15 @@
     #
     (par "(+ 1 1)")
     #
-    '@[:code
-       (:list {:start 0 :end 7}
-              (:symbol {:start 1 :end 2} "+")
-              (:whitespace {:start 2 :end 3} " ")
-              (:number {:start 3 :end 4} "1")
-              (:whitespace {:start 4 :end 5} " ")
-              (:number {:start 5 :end 6} "1"))]
-    ) # =>
+    @[:code @{:bc 1 :bl 1 :ec 8 :el 1}
+      [:list @{:bc 1 :bl 1 :ec 8 :el 1}
+       [:symbol @{:bc 2 :bl 1 :ec 3 :el 1} "+"]
+       [:whitespace @{:bc 3 :bl 1 :ec 4 :el 1} " "]
+       [:number @{:bc 4 :bl 1 :ec 5 :el 1} "1"]
+       [:whitespace @{:bc 5 :bl 1 :ec 6 :el 1} " "]
+       [:number @{:bc 6 :bl 1 :ec 7 :el 1} "1"]]]
+    )
+  # =>
   true
 
   )
@@ -555,263 +590,263 @@
 
 (comment
 
-  (gen [:code
-        [:keyword {:start 0 :end 2} ":a"]])
+  (gen [:code {}
+        [:keyword {} ":a"]])
   # =>
   ":a"
 
-  (gen [:code
-        [:number {:start 0 :end 1} "1"]])
+  (gen [:code {}
+        [:number {} "1"]])
   # =>
   "1"
 
-  (gen [:code
-        [:whitespace {:start 0 :end 1} " "]])
+  (gen [:code {}
+        [:whitespace {} " "]])
   # =>
   " "
 
-  (gen [:code
-        [:list {:start 0 :end 5}
-         [:number {:start 1 :end 2} "1"]
-         [:whitespace {:start 2 :end 3} " "]
-         [:number {:start 3 :end 4} "2"]]])
+  (gen [:code {}
+        [:list {}
+         [:number {} "1"]
+         [:whitespace {} " "]
+         [:number {} "2"]]])
   # =>
   "(1 2)"
 
-  (gen [:code
-        [:map {:start 0 :end 6}
-         [:keyword {:start 1 :end 3} ":a"]
-         [:whitespace {:start 3 :end 4} " "]
-         [:number {:start 4 :end 5} "1"]]])
+  (gen [:code {}
+        [:map {}
+         [:keyword {} ":a"]
+         [:whitespace {} " "]
+         [:number {} "1"]]])
   # =>
   "{:a 1}"
 
-  (gen [:code
-        [:vector {:start 0 :end 5}
-         [:number {:start 1 :end 2} "1"]
-         [:whitespace {:start 2 :end 3} " "]
-         [:number {:start 3 :end 4} "2"]]])
+  (gen [:code {}
+        [:vector {}
+         [:number {} "1"]
+         [:whitespace {} " "]
+         [:number {} "2"]]])
   # =>
   "[1 2]"
 
-  (gen [:code
-        [:set {:start 0 :end 6}
-         [:number {:start 2 :end 3} "1"]
-         [:whitespace {:start 3 :end 4} " "]
-         [:number {:start 4 :end 5} "2"]]])
+  (gen [:code {}
+        [:set {}
+         [:number {} "1"]
+         [:whitespace {} " "]
+         [:number {} "2"]]])
   # =>
   "#{1 2}"
 
-  (gen [:code
-        [:character {:start 0 :end 8} "\\newline"]])
+  (gen [:code {}
+        [:character {} "\\newline"]])
   # =>
   "\\newline"
 
-  (gen [:code
-        [:comment {:start 0 :end 5} ";; hi"]])
+  (gen [:code {}
+        [:comment {} ";; hi"]])
   # =>
   ";; hi"
 
-  (gen [:code
-        [:string {:start 0 :end 7} "\"smile\""]])
+  (gen [:code {}
+        [:string {} "\"smile\""]])
   # =>
   "\"smile\""
 
-  (gen [:code
-        [:symbol {:start 0 :end 1} "a"]])
+  (gen [:code {}
+        [:symbol {} "a"]])
   # =>
   "a"
 
-  (gen [:code
-        [:regex {:start 0 :end 4} "\".\""]])
+  (gen [:code {}
+        [:regex {} "\".\""]])
   # =>
   "#\".\""
 
-  (gen [:code
-        [:quote {:start 0 :end 2}
-         [:symbol {:start 1 :end 2} "a"]]])
+  (gen [:code {}
+        [:quote {}
+         [:symbol {} "a"]]])
   # =>
   "'a"
 
-  (gen [:code
-        [:quote {:start 0 :end 5}
-         [:list {:start 1 :end 5}
-          [:keyword {:start 2 :end 4} ":a"]]]])
+  (gen [:code {}
+        [:quote {}
+         [:list {}
+          [:keyword {} ":a"]]]])
   # =>
   "'(:a)"
 
-  (gen [:code
-        [:fn {:start 0 :end 8}
-         [:list {:start 1 :end 8}
-          [:symbol {:start 2 :end 5} "inc"]
-          [:whitespace {:start 5 :end 6} " "]
-          [:symbol {:start 6 :end 7} "%"]]]])
+  (gen [:code {}
+        [:fn {}
+         [:list {}
+          [:symbol {} "inc"]
+          [:whitespace {} " "]
+          [:symbol {} "%"]]]])
   # =>
   "#(inc %)"
 
-  (gen [:code
-        [:deref {:start 0 :end 2}
-         [:symbol {:start 1 :end 2} "a"]]])
+  (gen [:code {}
+        [:deref {}
+         [:symbol {} "a"]]])
   # =>
   "@a"
 
-  (gen [:code
-        [:deref {:start 0 :end 11}
-         [:list {:start 1 :end 11}
-          [:symbol {:start 2 :end 6} "atom"]
-          [:whitespace {:start 6 :end 7} " "]
-          [:symbol {:start 7 :end 10} "nil"]]]])
+  (gen [:code {}
+        [:deref {}
+         [:list {}
+          [:symbol {} "atom"]
+          [:whitespace {} " "]
+          [:symbol {} "nil"]]]])
   # =>
   "@(atom nil)"
 
-  (gen [:code
-        [:backtick {:start 0 :end 2}
-         [:symbol {:start 1 :end 2} "a"]]])
+  (gen [:code {}
+        [:backtick {}
+         [:symbol {} "a"]]])
   # =>
   "`a"
 
-  (gen [:code
-        [:unquote {:start 0 :end 2}
-         [:symbol {:start 1 :end 2} "a"]]])
+  (gen [:code {}
+        [:unquote {}
+         [:symbol {} "a"]]])
   # =>
   "~a"
 
-  (gen [:code
-        [:unquote-splicing  {:start 0 :end 3}
-         [:symbol  {:start 2 :end 3} "a"]]])
+  (gen [:code {}
+        [:unquote-splicing {}
+         [:symbol {} "a"]]])
   # =>
   "~@a"
 
-  (gen [:code
-        [:discard {:start 0 :end 4}
-         [:whitespace {:start 2 :end 3} " "]
-         [:symbol {:start 3 :end 4} "a"]]])
+  (gen [:code {}
+        [:discard {}
+         [:whitespace {} " "]
+         [:symbol {} "a"]]])
   # =>
   "#_ a"
 
-  (gen [:code
-        [:var-quote {:start 0 :end 3}
-         [:symbol {:start 2 :end 3} "a"]]])
+  (gen [:code {}
+        [:var-quote {}
+         [:symbol {} "a"]]])
   # =>
   "#'a"
 
-  (gen [:code
-        [:tag {:start 0 :end 44}
-         [:symbol {:start 1 :end 5} "uuid"]
-         [:whitespace {:start 5 :end 6} " "]
-         [:string {:start 6 :end 44}
+  (gen [:code {}
+        [:tag {}
+         [:symbol {} "uuid"]
+         [:whitespace {} " "]
+         [:string {}
           "\"00000000-0000-0000-0000-000000000000\""]]])
   # =>
   "#uuid \"00000000-0000-0000-0000-000000000000\""
 
   (gen
-    [:code
-     [:metadata {:start 0 :end 15}
-      [:metadata-entry {:start 0 :end 10}
-       [:map {:start 1 :end 10}
-        [:keyword {:start 2 :end 4} ":a"]
-        [:whitespace {:start 4 :end 5} " "]
-        [:symbol {:start 5 :end 9} "true"]]]
-      [:whitespace {:start 10 :end 11} " "]
-      [:vector {:start 11 :end 15}
-       [:keyword {:start 12 :end 14} ":a"]]]])
+    [:code {}
+     [:metadata {}
+      [:metadata-entry {}
+       [:map {}
+        [:keyword {} ":a"]
+        [:whitespace {} " "]
+        [:symbol {} "true"]]]
+      [:whitespace {} " "]
+      [:vector {}
+       [:keyword {} ":a"]]]])
   # =>
   "^{:a true} [:a]"
 
   (gen
-    [:code
-     [:metadata {:start 0 :end 16}
+    [:code {}
+     [:metadata {}
       [:deprecated-metadata-entry
-       {:start 0 :end 11}
-       [:map {:start 2 :end 11}
-        [:keyword {:start 3 :end 5} ":a"]
-        [:whitespace {:start 5 :end 6} " "]
-        [:symbol {:start 6 :end 10} "true"]]]
-      [:whitespace {:start 11 :end 12} " "]
-      [:vector {:start 12 :end 16}
-       [:keyword {:start 13 :end 15} ":a"]]]])
+       {}
+       [:map {}
+        [:keyword {} ":a"]
+        [:whitespace {} " "]
+        [:symbol {} "true"]]]
+      [:whitespace {} " "]
+      [:vector {}
+       [:keyword {} ":a"]]]])
   # =>
   "#^{:a true} [:a]"
 
-  (gen [:code
-        [:namespaced-map {:start 0 :end 6}
-         [:macro-keyword {:start 1 :end 4} "::a"]
-         [:map {:start 4 :end 6}]]])
+  (gen [:code {}
+        [:namespaced-map {}
+         [:macro-keyword {} "::a"]
+         [:map {}]]])
   # =>
   "#::a{}"
 
-  (gen [:code
-        [:namespaced-map {:start 0 :end 5}
-         [:auto-resolve {:start 1 :end 3}]
-         [:map {:start 3 :end 5}]]])
+  (gen [:code {}
+        [:namespaced-map {}
+         [:auto-resolve {}]
+         [:map {}]]])
   # =>
   "#::{}"
 
-  (gen [:code
-        [:namespaced-map {:start 0 :end 5}
-         [:keyword  {:start 1 :end 3} ":a"]
-         [:map {:start 3 :end 5}]]])
+  (gen [:code {}
+        [:namespaced-map {}
+         [:keyword  {} ":a"]
+         [:map {}]]])
   # =>
   "#:a{}"
 
-  (gen [:code
-        [:macro-keyword {:start 0 :end 3} "::a"]])
+  (gen [:code {}
+        [:macro-keyword {} "::a"]])
   # =>
   "::a"
 
-  (gen [:code
-        [:symbolic {:start 0 :end 5} "Inf"]])
+  (gen [:code {}
+        [:symbolic {} "Inf"]])
   # =>
   "##Inf"
 
-  (gen [:code
-        [:conditional {:start 0 :end 18}
-         [:list {:start 2 :end 18}
-          [:keyword {:start 3 :end 7} ":clj"]
-          [:whitespace {:start 7 :end 8} " "]
-          [:number {:start 8 :end 9} "0"]
-          [:whitespace {:start 9 :end 10} " "]
-          [:keyword {:start 10 :end 15} ":cljr"]
-          [:whitespace {:start 15 :end 16} " "]
-          [:number {:start 16 :end 17} "1"]]]])
+  (gen [:code {}
+        [:conditional {}
+         [:list {}
+          [:keyword {} ":clj"]
+          [:whitespace {} " "]
+          [:number {} "0"]
+          [:whitespace {} " "]
+          [:keyword {} ":cljr"]
+          [:whitespace {} " "]
+          [:number {} "1"]]]])
   # =>
   "#?(:clj 0 :cljr 1)"
 
   (gen
-    [:code
+    [:code {}
      [:conditional-splicing
-      {:start 0 :end 27}
-      [:list {:start 3 :end 27}
-       [:keyword {:start 4 :end 8} ":clj"]
-       [:whitespace {:start 8 :end 9} " "]
-       [:vector {:start 9 :end 14}
-        [:number {:start 10 :end 11} "0"]
-        [:whitespace {:start 11 :end 12} " "]
-        [:number {:start 12 :end 13} "1"]]
-       [:whitespace {:start 14 :end 15} " "]
-       [:keyword {:start 15 :end 20} ":cljr"]
-       [:whitespace {:start 20 :end 21} " "]
-       [:vector {:start 21 :end 26}
-        [:number {:start 22 :end 23} "8"]
-        [:whitespace {:start 23 :end 24} " "]
-        [:number {:start 24 :end 25} "9"]]]]])
+      {}
+      [:list {}
+       [:keyword {} ":clj"]
+       [:whitespace {} " "]
+       [:vector {}
+        [:number {} "0"]
+        [:whitespace {} " "]
+        [:number {} "1"]]
+       [:whitespace {} " "]
+       [:keyword {} ":cljr"]
+       [:whitespace {} " "]
+       [:vector {}
+        [:number {} "8"]
+        [:whitespace {} " "]
+        [:number {} "9"]]]]])
   # =>
   "#?@(:clj [0 1] :cljr [8 9])"
 
-  (gen [:code
-        [:eval {:start 0 :end 3}
-         [:symbol {:start 1 :end 3} "a"]]])
+  (gen [:code {}
+        [:eval {}
+         [:symbol {} "a"]]])
   # =>
   "#=a"
 
-  (gen [:code
-        [:eval {:start 0 :end 9}
-         [:list {:start 2 :end 9}
-          [:symbol {:start 3 :end 4} "+"]
-          [:whitespace {:start 4 :end 5} " "]
-          [:symbol {:start 5 :end 6} "a"]
-          [:whitespace {:start 6 :end 7} " "]
-          [:symbol {:start 7 :end 8} "b"]]]])
+  (gen [:code {}
+        [:eval {}
+         [:list {}
+          [:symbol {} "+"]
+          [:whitespace {} " "]
+          [:symbol {} "a"]
+          [:whitespace {} " "]
+          [:symbol {} "b"]]]])
   # =>
   "#=(+ a b)"
 
@@ -822,9 +857,9 @@
   (comment
 
     (let [src (slurp (string (os/getenv "HOME")
-                       "/src/clojure/src/clj/clojure/core.clj"))]
+                             "/src/clojure/src/clj/clojure/core.clj"))]
       (= (string src)
-        (gen (par src))))
+         (gen (par src))))
 
     )
 
