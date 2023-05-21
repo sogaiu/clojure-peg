@@ -4,7 +4,6 @@
 # grammar with appropriate capture constructs that also capture start and
 # end positions
 (def cg-capture-ast
-  # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
     (each kwd [:character :comment :keyword :macro-keyword :number
                :string :symbol :whitespace]
@@ -81,8 +80,7 @@
                ,(fn [& caps]
                   [:auto-resolve {:start (first caps)
                                   :end (last caps)}])))
-    # tried using a table with a peg but had a problem, so use a struct
-    (table/to-struct ca)))
+    ca))
 
 (comment
 

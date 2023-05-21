@@ -25,7 +25,6 @@
 (import ./grammar :prefix "")
 
 (def cg-capture-ast
-  # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
     # override things that need to be captured
     (each kwd [:character :comment :keyword :macro-keyword :number
@@ -63,9 +62,7 @@
              (tuple
                ;(put (array ;(in ca :fn))
                      2 ~(cmt (capture ,(get-in ca [:fn 2]))
-                             ,|[:fn (in $& 0)]))))
-        # tried using a table with a peg but had a problem, so use a struct
-        table/to-struct)))
+                             ,|[:fn (in $& 0)])))))))
 
 (comment
 
@@ -970,6 +967,6 @@
              (gen (par src)))))
       (print (- (os/time) start)))
 
-  )
+    )
 
-)
+  )

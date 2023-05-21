@@ -13,7 +13,6 @@
 # grammar with appropriate capture constructs that also capture start and
 # end positions
 (def cg-capture-ast
-  # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
     (each kwd [:character :comment :keyword :macro-keyword :number
                :string :symbol :whitespace]
@@ -73,8 +72,7 @@
                                   ,(in ca :auto-resolve)
                                   (line) (column)))
                ,|[:auto-resolve (make-attrs ;(slice $& 0 -2)) ]))
-    # tried using a table with a peg but had a problem, so use a struct
-    (table/to-struct ca)))
+    ca))
 
 (comment
 
@@ -389,20 +387,18 @@
   )
 
 (def loc-top-level-ast
-  (let [ltla (table ;(kvs cg-capture-ast))]
-    (put ltla :main
-         ~(sequence (line) (column)
-                    :input
-                    (line) (column)))
-    (table/to-struct ltla)))
+  (put (table ;(kvs cg-capture-ast))
+       :main
+       ~(sequence (line) (column)
+                  :input
+                  (line) (column))))
 
 (def mod-ast
-  (let [ma (table ;(kvs cg-capture-ast))]
-    (put ma :main
-         ~(sequence (line) (column)
-                    (some :input)
-                    (line) (column)))
-    (table/to-struct ma)))
+  (put (table ;(kvs cg-capture-ast))
+       :main
+       ~(sequence (line) (column)
+                  (some :input)
+                  (line) (column))))
 
 (defn par
   [src &opt start single]

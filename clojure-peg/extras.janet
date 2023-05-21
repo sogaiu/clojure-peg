@@ -2,13 +2,9 @@
 
 # make a version of cg that matches a single form
 (def cg-one
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
-   # just recognize one form
-   (put :main :input)
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
+  # just recognize one form
+  (put (table ;(kvs cg))
+       :main :input))
 
 (comment
 
@@ -59,13 +55,10 @@
  )
 
 (def cg-capture-all
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
-   # capture all
-   (put :main ~(capture ,(in cg :main)))
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
+  # capture all
+  (put (table ;(kvs cg))
+       :main
+       ~(capture ,(in cg :main))))
 
 (comment
 
@@ -128,13 +121,9 @@
  )
 
 (def cg-capture-one
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
-   # capture one
-   (put :main '(capture :input))
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
+  # capture one
+  (put (table ;(kvs cg))
+       :main '(capture :input)))
 
 (comment
 
@@ -161,13 +150,9 @@
  )
 
 (def cg-capture-top-levels
-  (->
-   # cg is a struct, need something mutable
-   (table ;(kvs cg))
    # capture each top-level
-   (put :main '(some (capture :input)))
-   # tried using a table with a peg but had a problem, so use a struct
-   table/to-struct))
+   (put (table ;(kvs cg))
+        :main '(some (capture :input))))
 
 (comment
 

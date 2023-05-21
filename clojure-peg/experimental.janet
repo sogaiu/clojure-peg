@@ -2,7 +2,6 @@
 
 # XXX: capture and store the start position as a number
 (def cg-capture-ast
-  # cg is a struct, need something mutable
   (let [ca (table ;(kvs cg))]
     (each kwd [:character :comment :keyword :macro-keyword :number
                :string :symbol :whitespace]
@@ -65,8 +64,7 @@
                          (capture ,(in ca :auto-resolve)))
                ,(fn [& caps]
                   [:auto-resolve (first caps)])))
-    # tried using a table with a peg but had a problem, so use a struct
-    (table/to-struct ca)))
+    ca))
 
 (comment
 
